@@ -66,7 +66,6 @@
     <script>
         function submitData() {
             const url = document.getElementById('url').value;
-            const game = document.getElementById('game').value;
             const messageDiv = document.getElementById('message');
             messageDiv.textContent = '';
 
@@ -100,7 +99,7 @@
                 if (data.url) {
                     const successMessageDiv = document.getElementById('message');
                     successMessageDiv.textContent = '上号成功，请允许打开游戏!!';
-                    window.location.href = data.url;
+                    window.location.href = data.url;  // Trigger the redirect here
                 } else {
                     const errorMessageDiv = document.getElementById('message');
                     errorMessageDiv.textContent = data.message || '上号失败，请检查数据号URL是否正确！！';
@@ -108,6 +107,7 @@
             })
             .catch(error => {
                 console.error('Error:', error);
+                messageDiv.textContent = "发生错误，请稍后重试！";
             });
         }
 
@@ -139,6 +139,7 @@
             })
             .catch(error => {
                 console.error('Error:', error);
+                document.getElementById('convertedContent').value = '发生错误，请稍后重试！';
             });
         }
 
