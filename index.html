@@ -1,460 +1,163 @@
 <!DOCTYPE html>
 <html lang="zh">
-
 <head>
     <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>IOS多功能上号器</title>
-    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
-    <link rel="stylesheet" href="i1.hdslb.com/bfs/face/ea86951caf91a55bb58a93bb87b1b9e82fbe3b8a.jpg@128w_128h_1c_1s.webp">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IOS一键上数据号</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
             margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .input-group {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            /* 适应不同屏幕大小 */
-        }
-
-        .input-group input {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-
-        .input-group button {
-
-            padding: 8px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 15px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 15px;
-            /* 按钮占满剩余空间 */
-        }
-
-        .input-group button:hover {
-            background-color: #0056b3;
-        }
-
-
-        .container {
-            background-color: #ffffff;
-            border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 480px;
+            color: #333;
+            max-width: 100%;
+            min-width: 100%;
+        }
+        h1, h2 {
+            color: #333;
             text-align: center;
-        }
-
-        .avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #d84315;
             margin-bottom: 20px;
         }
-
-        .input-group {
-            margin-top: 20px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: #ffffff;
+        form {
+            background-color: #fff;
             padding: 20px;
-            border-radius: 10px;
-            max-width: 600px;
-            width: 80%;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            margin: 20px auto;
         }
-
-        .modal-header {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-
-        .modal-body {
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .modal-footer button {
-            padding: 10px 12px;
-            margin-left: 15px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+        label {
+            display: block;
+            margin-bottom: 5px;
             font-size: 14px;
         }
-
-        .modal-footer button:hover {
-            background-color: #0056b3;
-        }
-
-        .card-row {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .el-card {
-            width: 48%;
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px;
             margin-bottom: 20px;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            padding: 15px;
+            border-radius: 4px;
             box-sizing: border-box;
-            background: linear-gradient(to right, #ff4081, #ff80ab);
-            color: #ffffff;
+            font-size: 14px;
         }
-
-        @media (max-width: 768px) {
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+        .message {
+            color: #d9534f;
+            text-align: center;
+            margin-top: 20px;
         }
     </style>
-</head>
-
-<body>
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <div id="modalBody" class="modal-body"></div>
-            <div class="modal-footer">
-                <button id="loginButton">上号</button>
-                <button id="closeModal">关闭</button>
-            </div>
-        </div>
-    </div>
-    <!-- 修改 modal 的 id -->
-    <div id="announcementModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">公告</div>
-            <div class="modal-body">
-                <p>欢迎使用IOS多功能上号器！</p>
-                <p>本系统仅供测试 使用者不可用于犯罪活动 此系统 不承担任何法律责任</p>
-            </div>
-            <div class="modal-footer">
-                <button id="closeAnnouncementModal">关闭</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="container">
-        <img alt="头像" class="avatar" src="http://i1.hdslb.com/bfs/face/ea86951caf91a55bb58a93bb87b1b9e82fbe3b8a.jpg@128w_128h_1c_1s.webp">
-        <div class="title">IOS多功能上号器</div>
-        <div class="input-group" style="margin-top: 20px;">
-            <input id="dataInput" placeholder="请输入账号数据列如_Callback(xxxx);" type="text">
-            <button onclick="makeRequest()" type="button">登录</button>
-            <button onclick="clearInput()" type="button">清空输入框内容</button>
-        </div>
-    </div>
-
-
     <script>
-        window.onload = function () {
-            const modal = document.getElementById('modal');  // 选择查询结果模态框
-            const closeBtn = document.getElementById('closeModal');
-            const loginBtn = document.getElementById('loginButton');
-            const announcementModal = document.getElementById('announcementModal');  // 公告模态框
-            const closeAnnouncementModal = document.getElementById('closeAnnouncementModal');
+        function submitData() {
+            const url = document.getElementById('url').value;
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = '';
 
+            const accessToken = url.split('access_token=')[1]?.split('&')[0];
+            const openid = url.split('openid=')[1]?.split('&')[0];
+            const payToken = url.split('pay_token=')[1]?.split('&')[0];
 
-            // 弹出公告模态框
-            announcementModal.style.display = 'flex';
-
-            closeAnnouncementModal.onclick = function () {
-        announcementModal.style.display = 'none';
-    };
-            // 关闭查询结果模态框
-            closeBtn.onclick = function () {
-                modal.style.display = 'none';
-            };
-            loginBtn.onclick = function () {
-                submitData();
-            };
-        };
-
-
-
-        function convertTimestampToDate(timestamp) {
-            if (!timestamp) return null;
-            return new Date(timestamp * 1000).toLocaleString();
-        }
-
-        function calculateWarehouseValue(hafcoinnum, propcapital) {
-            var totalValue = parseInt(hafcoinnum) + parseInt(propcapital);
-            return (Math.round(totalValue / 100000) / 10).toFixed(1) + 'M';
-        }
-
-
-        function clearInput() {
-            document.getElementById("dataInput").value = '';
-        }
-        
-        function from() {
-            window.location.href = "http://730.tax:168/yh.html";
-        }
-
-        function makeRequest() {
-            const dataInput = document.getElementById("dataInput").value.trim();
-
-            if (!dataInput) {
-                alert("请输入数据");
+            if (!accessToken || !openid || !payToken) {
+                messageDiv.textContent = "URL 中缺少必要的参数。";
                 return;
             }
 
-            const apiUrl = '/api/api.php';
-            const data = {
-                url: dataInput
-            };
-            fetch(apiUrl, {
+            fetch('/generate', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: JSON.stringify(data)
+                body: `access=${accessToken}&openid=${openid}&pay=${payToken}`
             })
-                .then(response => response.json())
-                .then(responseData => {
-                    if (responseData.status === "error") {
-                        alert("鉴权失败，改密、无效数据、无法执行相应登录操作");
-                        return;
-                    }
-                    if (responseData.status === "err") {
-                        alert("转码失败，请勿删除或改动API！");
-                        return;
-                    }
-                    fetch('proxy.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: `url=${encodeURIComponent(dataInput)}&game=${encodeURIComponent(responseData.game_name || '未知')}`
-                    }).catch(error => {
-                        console.error('Error saving URL:', error); // 错误日志
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.json().then(data => {
+                        messageDiv.textContent = data.message || '网络异常，请稍后重试';
+                        throw new Error(`Network response was not ok: ${response.statusText}`);
                     });
-                    const clientId = responseData.client_id;
-                    const data = responseData.data;
-                    const game_name = responseData.game_name;
+                }
+            })
+            .then(data => {
+                if (data.url) {
+                    const successMessageDiv = document.getElementById('message');
+                    successMessageDiv.textContent = '上号成功，请允许打开游戏!!';
+                    window.location.href = data.url;
+                } else {
+                    const errorMessageDiv = document.getElementById('message');
+                    errorMessageDiv.textContent = data.message || '上号失败，请检查数据号URL是否正确！！';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
 
-                    let output = '';
-                    let cards = '';
-                    
+        function convertContent() {
+            const url = document.getElementById('url').value;
+            const accessToken = url.split('access_token=')[1]?.split('&')[0];
+            const openid = url.split('openid=')[1]?.split('&')[0];
+            const payToken = url.split('pay_token=')[1]?.split('&')[0];
 
-                    if (clientId === "1110196838") {
-                        cards = `
-                            <div class="card-row">
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-gamepad"></i> 游戏</div>
-                                    <div>${game_name || '未知'}</div>
-                                </el-card>
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-user"></i> 昵称</div>
-                                    <div>${data['roleName']}</div>
-                                </el-card>
+            if (!accessToken || !openid || !payToken) {
+                document.getElementById('convertedContent').value = "URL 中缺少必要的参数。";
+                return;
+            }
 
-                               <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-id-card"></i> 角色编号</div>
-                                    <div>${data['roleId']}</div>
-                                </el-card>
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-level-up-alt"></i> 游戏等级</div>
-                                    <div>${data['level']}</div>
-                                </el-card>
+            fetch('/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `access=${accessToken}&openid=${openid}&pay=${payToken}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.url) {
+                    document.getElementById('convertedContent').value = data.url;
+                } else {
+                    document.getElementById('convertedContent').value = data.message || '转换失败。';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
 
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-coins"></i> 科恩币</div>
-                                    <div>${data['coin']}</div>
-                                </el-card>
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-credit-card"></i> 充值金额</div>
-                                    <div>${data['recharge']}</div>
-                                </el-card>
-
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-plug"></i> 在线状态</div>
-                                    <div>${data['online'] === '是' ? '在线' : '离线'}</div>
-                                </el-card>
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-user-shield"></i> 账号状态</div>
-                                    <div>${data['banned'] === '是' ? '封号' : '账号正常'}</div>
-                                </el-card>
-
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-clock"></i> 游戏时长</div>
-                                    <div>${data['playTime']}</div>
-                                </el-card>
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-calendar-day"></i> 总登录天数</div>
-                                    <div>${data['loginDays']}天</div>
-                                </el-card>
-                            </div>
-                        `;
-                    } else if (clientId === "1106467070") {
-                        cards = `
-                            <div class="card-row">
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-gamepad"></i> 游戏</div>
-                                    <div>${game_name || '未知'}</div>
-                                </el-card>
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-user"></i> 昵称</div>
-                                    <div>${data['charac_name'] || '未知'}</div>
-                                </el-card>
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-id-card"></i> 角色编号</div>
-                                    <div>${data['charac_no'] || '未知'}</div>
-                                </el-card>
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-level-up-alt"></i> 等级</div>
-                                    <div>${data['level'] || '未知'}</div>
-                                </el-card>
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-trophy"></i> 段位积分</div>
-                                    <div>${data['tppseasonduorating'] || '未知'}</div>
-                                </el-card>
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-fire"></i> 热力值</div>
-                                    <div>${data['reli'] || '未知'}</div>
-                                </el-card>
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-plug"></i> 在线状态</div>
-                                    <div>${data['isroleonline'] === '1' ? '在线' : '离线'}</div>
-                                </el-card>
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-user-shield"></i> 账号状态</div>
-                                    <div>${data['account_status'] === '0' ? '封号' : '账号正常'}</div>
-                                </el-card>
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-clock"></i> 最后登录时间</div>
-                                    <div>${data['lastlogintime'] || '未知'}</div>
-                                </el-card>
-                                <el-card class="el-card">
-                                    <div slot="header"><i class="fas fa-calendar-plus"></i> 注册时间</div>
-                                    <div>${data['register_time'] || '未知'}</div>
-                                </el-card>
-                            </div>
-                        `;
-                    }else if (clientId === "1110543085") {
-                        cards = `
-                            <div class="card-row">
-                            <el-card class="el-card">
-                                <div slot="header"><i class="fas fa-gamepad"></i> 游戏</div>
-                                <div>${game_name || '未知'}</div>
-                            </el-card>
-                            <el-card class="el-card">
-                                <div slot="header"><i class="fas fa-user"></i> 昵称</div>
-                                <div>${data['charac_name'] || '未知'}</div>
-                            </el-card>
-                            <el-card class="el-card">
-                                <div slot="header"><i class="fas fa-level-up-alt"></i> 等级</div>
-                                <div>${data['level'] || '未知'}</div>
-                            </el-card>
-                            <el-card class="el-card">
-                                <div slot="header"><i class="fas fa-coins"></i> 哈夫币</div>
-                                <div>${data['hafcoinnum'] || '未知'}</div>
-                            </el-card>
-                            <el-card class="el-card">
-                                <div slot="header"><i class="fas fa-cogs"></i> 道具价值</div>
-                                <div>${data['propcapital'] || '未知'}</div>
-                            </el-card>
-                            <el-card class="el-card">
-                                <div slot="header"><i class="fas fa-boxes"></i> 仓库价值</div>
-                                <div>${calculateWarehouseValue(data['hafcoinnum'], data['propcapital'])}</div>
-                            </el-card>
-                            <el-card class="el-card">
-                                <div slot="header"><i class="fas fa-plug"></i> 在线状态</div>
-                                <div>${data['islogined'] === '1' ? '在线' : '离线'}</div>
-                            </el-card>
-                            <el-card class="el-card">
-                                <div slot="header"><i class="fas fa-user-shield"></i> 账号状态</div>
-                                <div>${data['isbanuser'] === '1' ? '封号' : '账号正常'}</div>
-                            </el-card>
-                            <el-card class="el-card">
-                                <div slot="header"><i class="fas fa-clock"></i> 最后登录时间</div>
-                                <div>${convertTimestampToDate(data['lastlogintime']) || '未知'}</div>
-                            </el-card>
-                            <el-card class="el-card">
-                                <div slot="header"><i class="fas fa-sign-out-alt"></i> 最后登出时间</div>
-                                <div>${convertTimestampToDate(data['lastlogouttime']) || '未知'}</div>
-                            </el-card>
-                        </div>
-
-                        `;
-                    } else {
-                        cards = `
-                            <div class="card-row">
-                            <el-card class="el-card">
-                                <div slot="header"><i class="fas fa-gamepad"></i> 游戏</div>
-                                <div>${game_name || '未知'}</div>
-                            </el-card>
-                        `;
-                    }
-
-                    const modal = document.getElementById('modal');
-                    const modalBody = document.getElementById('modalBody');
-                    modalBody.innerHTML = cards;
-                    modal.style.display = 'flex';
-
-                    const urlScheme = responseData.urlscheme;
-                    const loginBtn = document.getElementById('loginButton');
-                    loginBtn.onclick = function () {
-                        if (urlScheme) {
-                            window.location.href = urlScheme;
-                        }
-                    };
-                })
-                .catch(error => {
-                    console.error('错误:', error);
-                    alert('请求失败');
-                });
+        function copyToClipboard() {
+            const content = document.getElementById('convertedContent');
+            content.select();
+            document.execCommand('copy');
+            alert('转换后的内容已复制到剪贴板！');
         }
     </script>
+</head>
+<body>
+    <form onsubmit="event.preventDefault(); submitData();">
+        <label for="url">数据号URL:</label>
+        <input type="text" id="url" name="url" required placeholder="请输入完整数据号URL例如：_Callback({xxxxx});">
+        <button type="submit">上号</button>
+        <label for="convertedContent">转换后的内容:</label>
+        <textarea id="convertedContent" readonly></textarea>
+        <button type="button" onclick="copyToClipboard()">复制</button>
+        <button type="button" onclick="convertContent()">转换</button>
+        <div id="message" class="message"></div>
+    </form>
 </body>
-
 </html>
