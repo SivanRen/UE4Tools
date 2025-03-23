@@ -1,171 +1,393 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IOS一键上数据号</title>
+    <title>UE4Tools</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            color: #333;
-            max-width: 100%;
-            min-width: 100%;
+            background-color: #000;
+            color: #fff;
         }
-        h1, h2 {
-            color: #333;
+        h1 {
             text-align: center;
             margin-bottom: 20px;
-        }
-        form {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            margin: 20px auto;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-        input[type="text"],
-        textarea,
-        select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 14px;
         }
         button {
             width: 100%;
             padding: 10px;
-            background-color: #5cb85c;
+            font-size: 16px;
+            background-color: #4CAF50;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
+            transition: background-color 0.3s ease;
         }
         button:hover {
-            background-color: #4cae4c;
+            background-color: #45a049;
         }
-        .message {
-            color: #d9534f;
-            text-align: center;
+        #functionSelector {
+            display: none;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+        }
+        section {
+            display: none;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+        }
+      .input-group {
+            margin-bottom: 15px;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+        }
+      .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+      .info-message {
+            color: orange;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+      .results {
             margin-top: 20px;
         }
+      .result-item {
+            margin-bottom: 20px;
+        }
+        img {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+        /* 新增样式 */
+        #fileDiffSection.preview {
+            margin-top: 20px;
+            border: 1px solid #555;
+            padding: 10px;
+            min-height: 100px;
+            overflow-y: scroll;
+        }
     </style>
-    <script>
-        function submitData() {
-            const url = document.getElementById('url').value;
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = '';
-
-            const accessToken = url.split('access_token=')[1]?.split('&')[0];
-            const openid = url.split('openid=')[1]?.split('&')[0];
-            const payToken = url.split('pay_token=')[1]?.split('&')[0];
-
-            if (!accessToken || !openid || !payToken) {
-                messageDiv.textContent = "URL 中缺少必要的参数。";
-                return;
-            }
-
-            fetch('/generate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: `access=${accessToken}&openid=${openid}&pay=${payToken}`
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    return response.json().then(data => {
-                        messageDiv.textContent = data.message || '网络异常，请稍后重试';
-                        throw new Error(`Network response was not ok: ${response.statusText}`);
-                    });
-                }
-            })
-            .then(data => {
-                if (data.url) {
-                    const successMessageDiv = document.getElementById('message');
-                    successMessageDiv.textContent = '上号成功，请允许打开游戏!!';
-                    window.location.href = data.url;  // Trigger the redirect here
-                } else {
-                    const errorMessageDiv = document.getElementById('message');
-                    errorMessageDiv.textContent = data.message || '上号失败，请检查数据号URL是否正确！！';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                messageDiv.textContent = "发生错误，请稍后重试！";
-            });
-        }
-
-        function convertContent() {
-            const url = document.getElementById('url').value;
-            const accessToken = url.split('access_token=')[1]?.split('&')[0];
-            const openid = url.split('openid=')[1]?.split('&')[0];
-            const payToken = url.split('pay_token=')[1]?.split('&')[0];
-
-            if (!accessToken || !openid || !payToken) {
-                document.getElementById('convertedContent').value = "URL 中缺少必要的参数。";
-                return;
-            }
-
-            fetch('/generate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: `access=${accessToken}&openid=${openid}&pay=${payToken}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.url) {
-                    document.getElementById('convertedContent').value = data.url;
-                } else {
-                    document.getElementById('convertedContent').value = data.message || '转换失败。';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('convertedContent').value = '发生错误，请稍后重试！';
-            });
-        }
-
-        function copyToClipboard() {
-            const content = document.getElementById('convertedContent');
-            content.select();
-            document.execCommand('copy');
-            alert('转换后的内容已复制到剪贴板！');
-        }
-    </script>
 </head>
 <body>
-    <form onsubmit="event.preventDefault(); submitData();">
-        <label for="url">数据号URL:</label>
-        <input type="text" id="url" name="url" required placeholder="请输入完整数据号URL例如：_Callback({xxxxx});">
-        <label for="game">选择游戏:</label>
-        <select id="game" name="game" required>
-            <option value="1">和平精英</option>
-        </select>
-        <button type="submit">上号</button>
-        <br>
-        <label for="convertedContent">转换后的内容:</label>
-        <textarea id="convertedContent" readonly></textarea>
-        <button type="button" onclick="copyToClipboard()">复制</button>
-        <button type="button" onclick="convertContent()">转换</button>
-        <div id="message" class="message"></div>
-    </form>
+    <h1 id="title">选择功能</h1>
+    <button id="selectFunctionButton">选择功能</button>
+    <div id="functionSelector">
+        <button id="iconSearchOption">批量icon检索</button>
+        <button id="dumpProcessingOption">Dump内容修正处理</button>
+        <button id="fileDiffOption">文件差异对比</button>
+    </div>
+    <!-- 批量icon检索功能区域 -->
+    <section id="icon-search">
+        <h1>批量icon检索</h1>
+        <div class="input-group">
+            <textarea id="content-input" placeholder="请输入多个数字组合，用逗号、换行或空格分隔"></textarea>
+            <!-- 添加清空按钮 -->
+            <button id="clearInputButton">清空输入框</button>
+        </div>
+        <button id="process-button">开始检索</button>
+        <div class="error-message" id="error-message"></div>
+        <div class="info-message" id="info-message"></div>
+        <div class="results" id="results"></div>
+        <button id="downloadIconButton" style="display: none;" onclick="downloadIcons()">一键下载所有图标</button>
+    </section>
+    <!-- Dump内容修正处理工具功能区域 -->
+    <section id="dump-processing">
+        <h1>Dump内容修正处理</h1>
+        <div class="input-group">
+            <input type="file" id="fileInput" accept=".txt">
+        </div>
+        <button id="processDumpButton">处理文件</button>
+        <div class="input-group">
+            <h3>原始内容</h3>
+            <textarea id="originalText" readonly></textarea>
+        </div>
+        <div class="input-group">
+            <h3>处理后的内容</h3>
+            <textarea id="processedText" readonly></textarea>
+        </div>
+        <button id="downloadDumpButton" style="display: none;">下载文件</button>
+        <button id="copyDumpButton" style="display: none;">一键复制</button>
+    </section>
+    <!-- 文件差异对比功能区域 -->
+    <section id="fileDiffSection">
+        <h1>文件差异对比</h1>
+        <div class="input-group">
+            <input type="file" id="fileAInput" accept=".txt">
+            <input type="file" id="fileBInput" accept=".txt">
+        </div>
+        <button id="compareFilesButton">对比文件</button>
+        <div class="preview" id="diffPreview"></div>
+        <button id="downloadDiffButton" style="display: none;">下载差异内容</button>
+        <button id="copyDiffButton" style="display: none;">复制差异内容</button>
+    </section>
+    <script>
+        // 功能选择按钮事件
+        const selectFunctionButton = document.getElementById('selectFunctionButton');
+        const functionSelector = document.getElementById('functionSelector');
+        const iconSearchOption = document.getElementById('iconSearchOption');
+        const dumpProcessingOption = document.getElementById('dumpProcessingOption');
+        const fileDiffOption = document.getElementById('fileDiffOption');
+        const iconSearchSection = document.getElementById('icon-search');
+        const dumpProcessingSection = document.getElementById('dump-processing');
+        const fileDiffSection = document.getElementById('fileDiffSection');
+        const title = document.getElementById('title');
+        selectFunctionButton.addEventListener('click', () => {
+            functionSelector.style.display = 'block';
+        });
+        iconSearchOption.addEventListener('click', () => {
+            functionSelector.style.display = 'none';
+            iconSearchSection.style.display = 'block';
+            dumpProcessingSection.style.display = 'none';
+            fileDiffSection.style.display = 'none';
+            title.style.display = 'none';
+        });
+        dumpProcessingOption.addEventListener('click', () => {
+            functionSelector.style.display = 'none';
+            dumpProcessingSection.style.display = 'block';
+            iconSearchSection.style.display = 'none';
+            fileDiffSection.style.display = 'none';
+            title.style.display = 'none';
+        });
+        fileDiffOption.addEventListener('click', () => {
+            functionSelector.style.display = 'none';
+            fileDiffSection.style.display = 'block';
+            iconSearchSection.style.display = 'none';
+            dumpProcessingSection.style.display = 'none';
+            title.style.display = 'none';
+        });
+        // 批量icon检索功能
+        const processButton = document.getElementById('process-button');
+        const contentInput = document.getElementById('content-input');
+        const errorMessage = document.getElementById('error-message');
+        const infoMessage = document.getElementById('info-message');
+        const results = document.getElementById('results');
+        const downloadIconButton = document.getElementById('downloadIconButton');
+        // 新增清空按钮点击事件
+        const clearInputButton = document.getElementById('clearInputButton');
+        clearInputButton.addEventListener('click', () => {
+            contentInput.value = '';
+        });
+        processButton.addEventListener('click', () => {
+            errorMessage.textContent = '';
+            infoMessage.textContent = '';
+            results.innerHTML = '';
+            const inputText = contentInput.value.trim();
+            if (!inputText) {
+                errorMessage.textContent = '请输入内容！';
+                return;
+            }
+            const lines = inputText.split(/\r?\n/).filter(line => line.trim()!== '');
+            const validEntries = [];
+            lines.forEach(line => {
+                const nameMatch = line.match(/(\d+)\s*--\s*(\d+)\s*--\s*([^--]+)/);
+                const numberMatch = line.match(/\d+/);
+                if (nameMatch) {
+                    const name = nameMatch[3].trim();
+                    const number = nameMatch[1].trim();
+                    validEntries.push({ name, number });
+                } else if (numberMatch) {
+                    const number = numberMatch[0].trim();
+                    validEntries.push({ name: "Null", number });
+                }
+            });
+            if (validEntries.length === 0) {
+                errorMessage.textContent = '输入内容无有效条目！';
+                return;
+            }
+            validEntries.forEach(entry => {
+                const imageUrl = `https://imgcdn.gp.qq.com/images/itemicon/v15/${entry.number}.png`;
+                const resultItem = document.createElement('div');
+                resultItem.className ='result-item';
+                const title = document.createElement('p');
+                title.textContent = `${entry.name} 输出值: ${entry.number}`;
+                resultItem.appendChild(title);
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.alt = `生成的图片 ${entry.number}`;
+                resultItem.appendChild(img);
+                results.appendChild(resultItem);
+            });
+            infoMessage.textContent = `共处理了 ${validEntries.length} 个输入值。`;
+            downloadIconButton.style.display = 'block';
+        });
+        function downloadIcons() {
+            const imgs = document.querySelectorAll('#results img');
+            imgs.forEach(img => {
+                const a = document.createElement('a');
+                a.href = img.src;
+                a.download = img.src.split('/').pop();
+                a.click();
+            });
+        }
+        // Dump内容修正处理工具功能
+        let processedContent = '';
+        const processDumpButton = document.getElementById('processDumpButton');
+        const fileInput = document.getElementById('fileInput');
+        const originalText = document.getElementById('originalText');
+        const processedText = document.getElementById('processedText');
+        const downloadDumpButton = document.getElementById('downloadDumpButton');
+        const copyDumpButton = document.getElementById('copyDumpButton');
+        processDumpButton.addEventListener('click', () => {
+            if (!fileInput.files.length) {
+                alert("请选择一个TXT文件");
+                return;
+            }
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const lines = event.target.result.split(/\r?\n/);
+                originalText.textContent = lines.join("\n");
+                const processedLines = lines.map(line => {
+                    // 修改正则表达式以匹配新格式并去除偏移量
+                    const match = line.match(/(\d+)\s*--\s*(\d+)\s*--\s*([^--]+)/);
+                    if (match) {
+                        return `${match[1]} -- ${match[2]} -- ${match[3]}`;
+                    }
+                    return '';
+                }).filter(line => line!== '');
+                processedContent = processedLines.join('\n');
+                processedText.textContent = processedContent;
+                downloadDumpButton.style.display = "block";
+                copyDumpButton.style.display = "block";
+            };
+            reader.readAsText(file);
+        });
+        downloadDumpButton.addEventListener('click', () => {
+            if (!processedContent) {
+                alert("没有可下载的内容");
+                return;
+            }
+            const date = new Date();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const dateStr = month + day;
+            const fileName = `CG31UE4Dump${dateStr}.txt`;
+            const blob = new Blob([processedContent], { type: "text/plain" });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+        copyDumpButton.addEventListener('click', () => {
+            if (!processedContent) {
+                alert("没有可复制的内容");
+                return;
+            }
+            navigator.clipboard.writeText(processedContent).then(() => {
+                alert("内容已复制到剪贴板！");
+            }).catch(err => {
+                console.error("复制失败:", err);
+                alert("复制失败，请手动选择文本复制");
+            });
+        });
+        // 文件差异对比功能
+        const compareFilesButton = document.getElementById('compareFilesButton');
+        const fileAInput = document.getElementById('fileAInput');
+        const fileBInput = document.getElementById('fileBInput');
+        const diffPreview = document.getElementById('diffPreview');
+        const downloadDiffButton = document.getElementById('downloadDiffButton');
+        const copyDiffButton = document.getElementById('copyDiffButton');
+        let diffContent = '';
+        compareFilesButton.addEventListener('click', () => {
+            if (!fileAInput.files.length ||!fileBInput.files.length) {
+                alert("请选择两个TXT文件");
+                return;
+            }
+            const fileA = fileAInput.files[0];
+            const fileB = fileBInput.files[0];
+            const readerA = new FileReader();
+            const readerB = new FileReader();
+            readerA.onload = function (eventA) {
+                const linesA = eventA.target.result.split(/\r?\n/);
+                readerB.onload = function (eventB) {
+                    const linesB = eventB.target.result.split(/\r?\n/);
+                    const diffLines = [];
+                    const fileADiffLines = [];
+                    linesA.forEach(line => {
+                        if (!linesB.includes(line)) {
+                            fileADiffLines.push(line);
+                        }
+                    });
+                    if (fileADiffLines.length > 0) {
+                        diffLines.push('文件A独有:');
+                        diffLines.push(...fileADiffLines);
+                    }
+                    const fileBDiffLines = [];
+                    linesB.forEach(line => {
+                        if (!linesA.includes(line)) {
+                            fileBDiffLines.push(line);
+                        }
+                    });
+                    if (fileBDiffLines.length > 0) {
+                        if (diffLines.length > 0) {
+                            diffLines.push('');
+                            diffLines.push('文件B独有:');
+                            diffLines.push(...fileBDiffLines);
+                        }
+                    }
+                    diffContent = diffLines.join('\n');
+                    diffPreview.textContent = diffContent;
+                    downloadDiffButton.style.display = 'block';
+                    copyDiffButton.style.display = 'block';
+                };
+                readerB.readAsText(fileB);
+            };
+            readerA.readAsText(fileA);
+        });
+        downloadDiffButton.addEventListener('click', () => {
+            if (!diffContent) {
+                alert("没有可下载的差异内容");
+                return;
+            }
+            const date = new Date();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const dateStr = month + day;
+            const fileName = `${dateStr}差异内容补全.txt`;
+            const blob = new Blob([diffContent], { type: "text/plain" });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+        copyDiffButton.addEventListener('click', () => {
+            if (!diffContent) {
+                alert("没有可复制的差异内容");
+                return;
+            }
+            navigator.clipboard.writeText(diffContent).then(() => {
+                alert("差异内容已复制到剪贴板！");
+            }).catch(err => {
+                console.error("复制失败:", err);
+                alert("复制失败，请手动选择文本复制");
+            });
+        });
+    </script>
 </body>
 </html>
