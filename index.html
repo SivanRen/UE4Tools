@@ -48,7 +48,7 @@
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
         }
-      .input-group {
+        .input-group {
             margin-bottom: 15px;
         }
         textarea {
@@ -60,27 +60,26 @@
             background-color: #333;
             color: #fff;
         }
-      .error-message {
+        .error-message {
             color: red;
             font-size: 14px;
             margin-top: 10px;
         }
-      .info-message {
+        .info-message {
             color: orange;
             font-size: 14px;
             margin-top: 10px;
         }
-      .results {
+        .results {
             margin-top: 20px;
         }
-      .result-item {
+        .result-item {
             margin-bottom: 20px;
         }
         img {
             max-width: 100%;
             border-radius: 5px;
         }
-        /* 新增样式 */
         #fileDiffSection.preview {
             margin-top: 20px;
             border: 1px solid #555;
@@ -98,12 +97,11 @@
         <button id="dumpProcessingOption">Dump内容修正处理</button>
         <button id="fileDiffOption">文件差异对比</button>
     </div>
-    <!-- 批量icon检索功能区域 -->
+
     <section id="icon-search">
         <h1>批量icon检索</h1>
         <div class="input-group">
             <textarea id="content-input" placeholder="请输入多个数字组合，用逗号、换行或空格分隔"></textarea>
-            <!-- 添加清空按钮 -->
             <button id="clearInputButton">清空输入框</button>
         </div>
         <button id="process-button">开始检索</button>
@@ -112,7 +110,7 @@
         <div class="results" id="results"></div>
         <button id="downloadIconButton" style="display: none;" onclick="downloadIcons()">一键下载所有图标</button>
     </section>
-    <!-- Dump内容修正处理工具功能区域 -->
+
     <section id="dump-processing">
         <h1>Dump内容修正处理</h1>
         <div class="input-group">
@@ -130,7 +128,7 @@
         <button id="downloadDumpButton" style="display: none;">下载文件</button>
         <button id="copyDumpButton" style="display: none;">一键复制</button>
     </section>
-    <!-- 文件差异对比功能区域 -->
+
     <section id="fileDiffSection">
         <h1>文件差异对比</h1>
         <div class="input-group">
@@ -142,8 +140,9 @@
         <button id="downloadDiffButton" style="display: none;">下载差异内容</button>
         <button id="copyDiffButton" style="display: none;">复制差异内容</button>
     </section>
+
     <script>
-        // 功能选择按钮事件
+        // 功能选择
         const selectFunctionButton = document.getElementById('selectFunctionButton');
         const functionSelector = document.getElementById('functionSelector');
         const iconSearchOption = document.getElementById('iconSearchOption');
@@ -153,6 +152,7 @@
         const dumpProcessingSection = document.getElementById('dump-processing');
         const fileDiffSection = document.getElementById('fileDiffSection');
         const title = document.getElementById('title');
+
         selectFunctionButton.addEventListener('click', () => {
             functionSelector.style.display = 'block';
         });
@@ -177,14 +177,14 @@
             dumpProcessingSection.style.display = 'none';
             title.style.display = 'none';
         });
-        // 批量icon检索功能
+
+        // icon 检索
         const processButton = document.getElementById('process-button');
         const contentInput = document.getElementById('content-input');
         const errorMessage = document.getElementById('error-message');
         const infoMessage = document.getElementById('info-message');
         const results = document.getElementById('results');
         const downloadIconButton = document.getElementById('downloadIconButton');
-        // 新增清空按钮点击事件
         const clearInputButton = document.getElementById('clearInputButton');
         clearInputButton.addEventListener('click', () => {
             contentInput.value = '';
@@ -241,7 +241,8 @@
                 a.click();
             });
         }
-        // Dump内容修正处理工具功能
+
+        // 修改后的 Dump 修正处理逻辑
         let processedContent = '';
         const processDumpButton = document.getElementById('processDumpButton');
         const fileInput = document.getElementById('fileInput');
@@ -260,13 +261,12 @@
                 const lines = event.target.result.split(/\r?\n/);
                 originalText.textContent = lines.join("\n");
                 const processedLines = lines.map(line => {
-                    // 修改正则表达式以匹配新格式并去除偏移量
-                    const match = line.match(/(\d+)\s*--\s*(\d+)\s*--\s*([^--]+)/);
-                    if (match) {
-                        return `${match[1]} -- ${match[2]} -- ${match[3]}`;
+                    const parts = line.split('--').map(p => p.trim());
+                    if (parts.length >= 3) {
+                        return `${parts[0]} -- ${parts[1]} -- ${parts[2]}`;
                     }
                     return '';
-                }).filter(line => line!== '');
+                }).filter(line => line !== '');
                 processedContent = processedLines.join('\n');
                 processedText.textContent = processedContent;
                 downloadDumpButton.style.display = "block";
@@ -282,8 +282,7 @@
             const date = new Date();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
-            const dateStr = month + day;
-            const fileName = `CG31UE4Dump${dateStr}.txt`;
+            const fileName = `CG31UE4Dump${month}${day}.txt`;
             const blob = new Blob([processedContent], { type: "text/plain" });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
@@ -299,90 +298,6 @@
             }
             navigator.clipboard.writeText(processedContent).then(() => {
                 alert("内容已复制到剪贴板！");
-            }).catch(err => {
-                console.error("复制失败:", err);
-                alert("复制失败，请手动选择文本复制");
-            });
-        });
-        // 文件差异对比功能
-        const compareFilesButton = document.getElementById('compareFilesButton');
-        const fileAInput = document.getElementById('fileAInput');
-        const fileBInput = document.getElementById('fileBInput');
-        const diffPreview = document.getElementById('diffPreview');
-        const downloadDiffButton = document.getElementById('downloadDiffButton');
-        const copyDiffButton = document.getElementById('copyDiffButton');
-        let diffContent = '';
-        compareFilesButton.addEventListener('click', () => {
-            if (!fileAInput.files.length ||!fileBInput.files.length) {
-                alert("请选择两个TXT文件");
-                return;
-            }
-            const fileA = fileAInput.files[0];
-            const fileB = fileBInput.files[0];
-            const readerA = new FileReader();
-            const readerB = new FileReader();
-            readerA.onload = function (eventA) {
-                const linesA = eventA.target.result.split(/\r?\n/);
-                readerB.onload = function (eventB) {
-                    const linesB = eventB.target.result.split(/\r?\n/);
-                    const diffLines = [];
-                    const fileADiffLines = [];
-                    linesA.forEach(line => {
-                        if (!linesB.includes(line)) {
-                            fileADiffLines.push(line);
-                        }
-                    });
-                    if (fileADiffLines.length > 0) {
-                        diffLines.push('文件A独有:');
-                        diffLines.push(...fileADiffLines);
-                    }
-                    const fileBDiffLines = [];
-                    linesB.forEach(line => {
-                        if (!linesA.includes(line)) {
-                            fileBDiffLines.push(line);
-                        }
-                    });
-                    if (fileBDiffLines.length > 0) {
-                        if (diffLines.length > 0) {
-                            diffLines.push('');
-                            diffLines.push('文件B独有:');
-                            diffLines.push(...fileBDiffLines);
-                        }
-                    }
-                    diffContent = diffLines.join('\n');
-                    diffPreview.textContent = diffContent;
-                    downloadDiffButton.style.display = 'block';
-                    copyDiffButton.style.display = 'block';
-                };
-                readerB.readAsText(fileB);
-            };
-            readerA.readAsText(fileA);
-        });
-        downloadDiffButton.addEventListener('click', () => {
-            if (!diffContent) {
-                alert("没有可下载的差异内容");
-                return;
-            }
-            const date = new Date();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const dateStr = month + day;
-            const fileName = `${dateStr}差异内容补全.txt`;
-            const blob = new Blob([diffContent], { type: "text/plain" });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        });
-        copyDiffButton.addEventListener('click', () => {
-            if (!diffContent) {
-                alert("没有可复制的差异内容");
-                return;
-            }
-            navigator.clipboard.writeText(diffContent).then(() => {
-                alert("差异内容已复制到剪贴板！");
             }).catch(err => {
                 console.error("复制失败:", err);
                 alert("复制失败，请手动选择文本复制");
