@@ -48,7 +48,7 @@
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
         }
-        .input-group {
+       .input-group {
             margin-bottom: 15px;
         }
         textarea {
@@ -60,20 +60,20 @@
             background-color: #333;
             color: #fff;
         }
-        .error-message {
+       .error-message {
             color: red;
             font-size: 14px;
             margin-top: 10px;
         }
-        .info-message {
+       .info-message {
             color: orange;
             font-size: 14px;
             margin-top: 10px;
         }
-        .results {
+       .results {
             margin-top: 20px;
         }
-        .result-item {
+       .result-item {
             margin-bottom: 20px;
         }
         img {
@@ -88,6 +88,7 @@
             overflow-y: scroll;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/diff-match-patch/1.0.0/diff_match_patch.js"></script>
 </head>
 <body>
     <h1 id="title">选择功能</h1>
@@ -96,8 +97,8 @@
         <button id="iconSearchOption">批量icon检索</button>
         <button id="dumpProcessingOption">Dump内容修正处理</button>
         <button id="fileDiffOption">文件差异对比</button>
+        <button id="redClothingIconOption">RedClothingIcon</button>
     </div>
-
     <section id="icon-search">
         <h1>批量icon检索</h1>
         <div class="input-group">
@@ -110,7 +111,6 @@
         <div class="results" id="results"></div>
         <button id="downloadIconButton" style="display: none;" onclick="downloadIcons()">一键下载所有图标</button>
     </section>
-
     <section id="dump-processing">
         <h1>Dump内容修正处理</h1>
         <div class="input-group">
@@ -128,7 +128,6 @@
         <button id="downloadDumpButton" style="display: none;">下载文件</button>
         <button id="copyDumpButton" style="display: none;">一键复制</button>
     </section>
-
     <section id="fileDiffSection">
         <h1>文件差异对比</h1>
         <div class="input-group">
@@ -140,7 +139,15 @@
         <button id="downloadDiffButton" style="display: none;">下载差异内容</button>
         <button id="copyDiffButton" style="display: none;">复制差异内容</button>
     </section>
-
+    <section id="red-clothing-icon">
+        <h1>RedClothingIcon</h1>
+        <div class="input-group">
+            <textarea id="redClothingInput" placeholder="请输入自定义内容"></textarea>
+            <button id="generateRedClothingIconsButton">生成图标</button>
+        </div>
+        <div class="error-message" id="redClothingError"></div>
+        <div class="results" id="redClothingResults"></div>
+    </section>
     <script>
         // 功能选择
         const selectFunctionButton = document.getElementById('selectFunctionButton');
@@ -152,6 +159,8 @@
         const dumpProcessingSection = document.getElementById('dump-processing');
         const fileDiffSection = document.getElementById('fileDiffSection');
         const title = document.getElementById('title');
+        const redClothingIconOption = document.getElementById('redClothingIconOption');
+        const redClothingIconSection = document.getElementById('red-clothing-icon');
 
         selectFunctionButton.addEventListener('click', () => {
             functionSelector.style.display = 'block';
@@ -177,6 +186,14 @@
             dumpProcessingSection.style.display = 'none';
             title.style.display = 'none';
         });
+        redClothingIconOption.addEventListener('click', () => {
+            functionSelector.style.display = 'none';
+            redClothingIconSection.style.display = 'block';
+            iconSearchSection.style.display = 'none';
+            dumpProcessingSection.style.display = 'none';
+            fileDiffSection.style.display = 'none';
+            title.style.display = 'none';
+        });
 
         // icon 检索
         const processButton = document.getElementById('process-button');
@@ -186,6 +203,7 @@
         const results = document.getElementById('results');
         const downloadIconButton = document.getElementById('downloadIconButton');
         const clearInputButton = document.getElementById('clearInputButton');
+
         clearInputButton.addEventListener('click', () => {
             contentInput.value = '';
         });
@@ -250,6 +268,7 @@
         const processedText = document.getElementById('processedText');
         const downloadDumpButton = document.getElementById('downloadDumpButton');
         const copyDumpButton = document.getElementById('copyDumpButton');
+
         processDumpButton.addEventListener('click', () => {
             if (!fileInput.files.length) {
                 alert("请选择一个TXT文件");
@@ -266,7 +285,7 @@
                         return `${parts[0]} -- ${parts[1]} -- ${parts[2]}`;
                     }
                     return '';
-                }).filter(line => line !== '');
+                }).filter(line => line!== '');
                 processedContent = processedLines.join('\n');
                 processedText.textContent = processedContent;
                 downloadDumpButton.style.display = "block";
@@ -301,6 +320,69 @@
             }).catch(err => {
                 console.error("复制失败:", err);
                 alert("复制失败，请手动选择文本复制");
+            });
+        });
+
+        // 文件差异对比功能修复
+        const compareFilesButton = document.getElementById('compareFilesButton');
+        const fileAInput = document.getElementById('fileAInput');
+        const fileBInput = document.getElementById('fileBInput');
+        const diffPreview = document.getElementById('diffPreview');
+        const downloadDiffButton = document.getElementById('downloadDiffButton');
+        const copyDiffButton = document.getElementById('copyDiffButton');
+
+        compareFilesButton.addEventListener('click', () => {
+            if (!fileAInput.files.length ||!fileBInput.files.length) {
+                alert("请选择两个TXT文件");
+                return;
+            }
+            const fileA = fileAInput.files[0];
+            const fileB = fileBInput.files[0];
+            const readerA = new FileReader();
+            const readerB = new FileReader();
+            readerA.onload = function (eventA) {
+                readerB.onload = function (eventB) {
+                    const textA = eventA.target.result;
+                    const textB = eventB.target.result;
+                    const dmp = new diff_match_patch();
+                    const diffs = dmp.diff_main(textA, textB);
+                    const htmlDiff = dmp.diff_prettyHtml(diffs);
+                    diffPreview.innerHTML = htmlDiff;
+                    downloadDiffButton.style.display = 'block';
+                    copyDiffButton.style.display = 'block';
+                };
+                readerB.readAsText(fileB);
+            };
+            readerA.readAsText(fileA);
+        });
+
+        // RedClothingIcon功能
+        const generateRedClothingIconsButton = document.getElementById('generateRedClothingIconsButton');
+        const redClothingInput = document.getElementById('redClothingInput');
+        const redClothingError = document.getElementById('redClothingError');
+        const redClothingResults = document.getElementById('redClothingResults');
+
+        generateRedClothingIconsButton.addEventListener('click', () => {
+            redClothingError.textContent = '';
+            redClothingResults.innerHTML = '';
+            const customText = redClothingInput.value.trim();
+            if (!customText) {
+                redClothingError.textContent = '请输入自定义内容！';
+                return;
+            }
+            const levels = ['01', '02', '03', '04', '05', '06', 'MAX'];
+            levels.forEach(level => {
+                const imageUrl = `https://game.gtimg.cn/images/gp/webimg_xiangmu/HZ_upgrade/${customText}_RedClothing_RankIcon_${level}.png`;
+                const resultItem = document.createElement('div');
+                resultItem.className ='result-item';
+                const title = document.createElement('p');
+                title.textContent = `等级 ${level} 的图标`;
+                resultItem.appendChild(title);
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.alt = `等级 ${level} 的图标`;
+                resultItem.appendChild(img);
+                redClothingResults.appendChild(resultItem);
             });
         });
     </script>
