@@ -324,37 +324,142 @@
         });
 
         // 文件差异对比功能修复
-        const compareFilesButton = document.getElementById('compareFilesButton');
-        const fileAInput = document.getElementById('fileAInput');
-        const fileBInput = document.getElementById('fileBInput');
-        const diffPreview = document.getElementById('diffPreview');
-        const downloadDiffButton = document.getElementById('downloadDiffButton');
-        const copyDiffButton = document.getElementById('copyDiffButton');
+ 
+const compareFilesButton = document.getElementById('compareFilesButton');
 
-        compareFilesButton.addEventListener('click', () => {
-            if (!fileAInput.files.length ||!fileBInput.files.length) {
-                alert("请选择两个TXT文件");
-                return;
-            }
-            const fileA = fileAInput.files[0];
-            const fileB = fileBInput.files[0];
-            const readerA = new FileReader();
-            const readerB = new FileReader();
-            readerA.onload = function (eventA) {
-                readerB.onload = function (eventB) {
-                    const textA = eventA.target.result;
-                    const textB = eventB.target.result;
-                    const dmp = new diff_match_patch();
-                    const diffs = dmp.diff_main(textA, textB);
-                    const htmlDiff = dmp.diff_prettyHtml(diffs);
-                    diffPreview.innerHTML = htmlDiff;
-                    downloadDiffButton.style.display = 'block';
-                    copyDiffButton.style.display = 'block';
-                };
-                readerB.readAsText(fileB);
-            };
-            readerA.readAsText(fileA);
-        });
+const fileAInput = document.getElementById('fileAInput');
+
+const fileBInput = document.getElementById('fileBInput');
+
+const diffPreview = document.getElementById('diffPreview');
+
+const downloadDiffButton = document.getElementById('downloadDiffButton');
+
+const copyDiffButton = document.getElementById('copyDiffButton');
+
+let diffContent = '';
+
+compareFilesButton.addEventListener('click', () => {
+  
+if (!fileAInput.files.length ||!fileBInput.files.length) {
+
+
+alert("请选择两个TXT文件");
+
+return;
+  
+}
+  
+const fileA = fileAInput.files[0];
+  
+const fileB = fileBInput.files[0];
+  
+const readerA = new FileReader();
+  
+const readerB = new FileReader();
+  
+readerA.onload = function (eventA) {
+
+const linesA = eventA.target.result.split(/\r?\n/);
+
+readerB.onload = function (eventB) {
+  
+const linesB = eventB.target.result.split(/\r?\n/);
+
+const diffLines = [];
+  
+const fileADiffLines = [];
+
+linesA.forEach(line => {
+
+if (!linesB.includes(line)) {
+
+fileADiffLines.push(line);
+
+}
+  
+});
+
+
+if (fileADiffLines.length > 0) {
+
+diffLines.push('文件A独有:');
+
+diffLines.push(...fileADiffLines);
+
+}
+
+const fileBDiffLines = [];
+
+linesB.forEach(line => {
+
+if (!linesA.includes(line)) {
+
+fileBDiffLines.push(line);
+
+}
+
+});
+  
+if (fileBDiffLines.length > 0) {
+
+if (diffLines.length > 0) {
+
+diffLines.push('');
+
+}
+
+diffLines.push('文件B独有:');
+
+diffLines.push(...fileBDiffLines);
+}
+diffContent = diffLines.join('\n');
+diffPreview.textContent = diffContent;
+downloadDiffButton.style.display = 'block';
+
+copyDiffButton.style.display = 'block';
+};
+readerB.readAsText(fileB);
+};
+readerA.readAsText(fileA);
+});
+downloadDiffButton.addEventListener('click', () => {
+if (!diffContent) {
+alert("没有可下载的差异内容");
+return;
+}
+const date = new Date();
+const month = String(date.getMonth() + 1).padStart(2, '0');
+const day = String(date.getDate()).padStart(2, '0');
+const dateStr = month + day;
+const fileName = `${dateStr}差异内容补全.txt`;
+const blob = new Blob([diffContent], { type: "text/plain" });
+const link = document.createElement('a');
+link.href = URL.createObjectURL(blob);
+link.download = fileName;
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+});
+copyDiffButton.addEventListener('click', () => {
+if (!diffContent) {
+alert("没有可复制的差异内容");
+return;
+}
+  
+navigator.clipboard.writeText(diffContent).then(() => {
+
+
+alert("差异内容已复制到剪贴板！");
+  
+}).catch(err => {
+
+
+console.error("复制失败:", err);
+alert("复制失败，请手动选择文本复制");
+  
+});
+});
 
         // RedClothingIcon功能
         const generateRedClothingIconsButton = document.getElementById('generateRedClothingIconsButton');
