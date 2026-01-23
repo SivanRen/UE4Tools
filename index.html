@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UE4Tools</title>
     <style>
-        /* iOS 18 基础样式重置与全局配置 */
+        /* 基础样式重置与全局配置 */
         * {
             margin: 0;
             padding: 0;
@@ -21,7 +21,7 @@
             line-height: 1.5;
         }
 
-        /* iOS 18 标题样式 */
+        /* 标题样式 */
         h1 {
             text-align: center;
             margin-bottom: 24px;
@@ -31,7 +31,7 @@
             letter-spacing: -0.5px;
         }
 
-        /* iOS 18 按钮样式 - 主按钮 */
+        /* 按钮样式 - 主按钮 */
         button {
             width: 100%;
             padding: 14px 20px;
@@ -181,7 +181,7 @@
             font-size: 14px;
         }
 
-        /* 滚动条美化 - iOS 风格 */
+        /* 滚动条美化 */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -202,12 +202,12 @@
         }
 
         /* 辅助按钮样式（清空、复制等） */
-        #clearInputButton {
+        #clearInputButton, #clearSubwayInputButton {
             background-color: #f5f5f7;
             color: #1d1d1f;
         }
 
-        #clearInputButton:hover {
+        #clearInputButton:hover, #clearSubwayInputButton:hover {
             background-color: #e8e8ed;
         }
 
@@ -240,7 +240,7 @@
         <button id="iconSearchOption">批量icon检索</button>
         <button id="dumpProcessingOption">Dump内容修正处理</button>
         <button id="fileDiffOption">文件差异对比</button>
-        <button id="redClothingIconOption">RedClothingIcon</button>
+        <button id="subwayIconOption">地铁道具icon获取</button>
     </div>
     <section id="icon-search">
         <h1>批量icon检索</h1>
@@ -282,14 +282,17 @@
         <button id="downloadDiffButton" style="display: none;">下载差异内容</button>
         <button id="copyDiffButton" style="display: none;">复制差异内容</button>
     </section>
-    <section id="red-clothing-icon">
-        <h1>RedClothingIcon</h1>
+    <section id="subway-icon">
+        <h1>地铁道具icon获取</h1>
         <div class="input-group">
-            <textarea id="redClothingInput" placeholder="请输入自定义内容"></textarea>
-            <button id="generateRedClothingIconsButton">生成图标</button>
+            <textarea id="subway-content-input" placeholder="请输入多个数字组合，用逗号、换行或空格分隔"></textarea>
+            <button id="clearSubwayInputButton">清空输入框</button>
         </div>
-        <div class="error-message" id="redClothingError"></div>
-        <div class="results" id="redClothingResults"></div>
+        <button id="process-subway-button">开始获取</button>
+        <div class="error-message" id="subway-error-message"></div>
+        <div class="info-message" id="subway-info-message"></div>
+        <div class="results" id="subway-results"></div>
+        <button id="downloadSubwayIconButton" style="display: none;" onclick="downloadSubwayIcons()">一键下载所有图标</button>
     </section>
     <script>
         // 功能选择
@@ -302,8 +305,8 @@
         const dumpProcessingSection = document.getElementById('dump-processing');
         const fileDiffSection = document.getElementById('fileDiffSection');
         const title = document.getElementById('title');
-        const redClothingIconOption = document.getElementById('redClothingIconOption');
-        const redClothingIconSection = document.getElementById('red-clothing-icon');
+        const subwayIconOption = document.getElementById('subwayIconOption');
+        const subwayIconSection = document.getElementById('subway-icon');
 
         selectFunctionButton.addEventListener('click', () => {
             functionSelector.style.display = 'block';
@@ -313,6 +316,7 @@
             iconSearchSection.style.display = 'block';
             dumpProcessingSection.style.display = 'none';
             fileDiffSection.style.display = 'none';
+            subwayIconSection.style.display = 'none';
             title.style.display = 'none';
         });
         dumpProcessingOption.addEventListener('click', () => {
@@ -320,6 +324,7 @@
             dumpProcessingSection.style.display = 'block';
             iconSearchSection.style.display = 'none';
             fileDiffSection.style.display = 'none';
+            subwayIconSection.style.display = 'none';
             title.style.display = 'none';
         });
         fileDiffOption.addEventListener('click', () => {
@@ -327,18 +332,19 @@
             fileDiffSection.style.display = 'block';
             iconSearchSection.style.display = 'none';
             dumpProcessingSection.style.display = 'none';
+            subwayIconSection.style.display = 'none';
             title.style.display = 'none';
         });
-        redClothingIconOption.addEventListener('click', () => {
+        subwayIconOption.addEventListener('click', () => {
             functionSelector.style.display = 'none';
-            redClothingIconSection.style.display = 'block';
+            subwayIconSection.style.display = 'block';
             iconSearchSection.style.display = 'none';
             dumpProcessingSection.style.display = 'none';
             fileDiffSection.style.display = 'none';
             title.style.display = 'none';
         });
 
-        // icon 检索
+        // 批量icon 检索
         const processButton = document.getElementById('process-button');
         const contentInput = document.getElementById('content-input');
         const errorMessage = document.getElementById('error-message');
@@ -378,6 +384,7 @@
                 return;
             }
             validEntries.forEach(entry => {
+                // 原有批量icon的链接地址
                 const imageUrl = `https://imgcdn.gp.qq.com/images/itemicon/v15/${entry.number}.png`;
                 const resultItem = document.createElement('div');
                 resultItem.className ='result-item';
@@ -403,7 +410,73 @@
             });
         }
 
-        // 修改后的 Dump 修正处理逻辑
+        // 地铁道具icon获取功能
+        const processSubwayButton = document.getElementById('process-subway-button');
+        const subwayContentInput = document.getElementById('subway-content-input');
+        const subwayErrorMessage = document.getElementById('subway-error-message');
+        const subwayInfoMessage = document.getElementById('subway-info-message');
+        const subwayResults = document.getElementById('subway-results');
+        const downloadSubwayIconButton = document.getElementById('downloadSubwayIconButton');
+        const clearSubwayInputButton = document.getElementById('clearSubwayInputButton');
+
+        clearSubwayInputButton.addEventListener('click', () => {
+            subwayContentInput.value = '';
+        });
+        processSubwayButton.addEventListener('click', () => {
+            subwayErrorMessage.textContent = '';
+            subwayInfoMessage.textContent = '';
+            subwayResults.innerHTML = '';
+            const inputText = subwayContentInput.value.trim();
+            if (!inputText) {
+                subwayErrorMessage.textContent = '请输入内容！';
+                return;
+            }
+            const lines = inputText.split(/\r?\n/).filter(line => line.trim()!== '');
+            const validEntries = [];
+            lines.forEach(line => {
+                const nameMatch = line.match(/(\d+)\s*--\s*(\d+)\s*--\s*([^--]+)/);
+                const numberMatch = line.match(/\d+/);
+                if (nameMatch) {
+                    const name = nameMatch[3].trim();
+                    const number = nameMatch[1].trim();
+                    validEntries.push({ name, number });
+                } else if (numberMatch) {
+                    const number = numberMatch[0].trim();
+                    validEntries.push({ name: "Null", number });
+                }
+            });
+            if (validEntries.length === 0) {
+                subwayErrorMessage.textContent = '输入内容无有效条目！';
+                return;
+            }
+            validEntries.forEach(entry => {
+                // 地铁道具icon的专属链接地址
+                const imageUrl = `https://imgcdn.gp.qq.com/images/Subway/s/${entry.number}.png`;
+                const resultItem = document.createElement('div');
+                resultItem.className ='result-item';
+                const title = document.createElement('p');
+                title.textContent = `${entry.name} 输出值: ${entry.number}`;
+                resultItem.appendChild(title);
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.alt = `地铁道具图片 ${entry.number}`;
+                resultItem.appendChild(img);
+                subwayResults.appendChild(resultItem);
+            });
+            subwayInfoMessage.textContent = `共处理了 ${validEntries.length} 个输入值。`;
+            downloadSubwayIconButton.style.display = 'block';
+        });
+        function downloadSubwayIcons() {
+            const imgs = document.querySelectorAll('#subway-results img');
+            imgs.forEach(img => {
+                const a = document.createElement('a');
+                a.href = img.src;
+                a.download = img.src.split('/').pop();
+                a.click();
+            });
+        }
+
+        // Dump 修正处理
         let processedContent = '';
         const processDumpButton = document.getElementById('processDumpButton');
         const fileInput = document.getElementById('fileInput');
@@ -466,7 +539,7 @@
             });
         });
 
-        // 文件差异对比功能修复
+        // 文件差异对比
         const compareFilesButton = document.getElementById('compareFilesButton');
         const fileAInput = document.getElementById('fileAInput');
         const fileBInput = document.getElementById('fileBInput');
@@ -549,36 +622,6 @@
             }).catch(err => {
                 console.error("复制失败:", err);
                 alert("复制失败，请手动选择文本复制");
-            });
-        });
-
-        // RedClothingIcon功能
-        const generateRedClothingIconsButton = document.getElementById('generateRedClothingIconsButton');
-        const redClothingInput = document.getElementById('redClothingInput');
-        const redClothingError = document.getElementById('redClothingError');
-        const redClothingResults = document.getElementById('redClothingResults');
-
-        generateRedClothingIconsButton.addEventListener('click', () => {
-            redClothingError.textContent = '';
-            redClothingResults.innerHTML = '';
-            const customText = redClothingInput.value.trim();
-            if (!customText) {
-                redClothingError.textContent = '请输入自定义内容！';
-                return;
-            }
-            const levels = ['01', '02', '03', '04', '05', '06', 'MAX'];
-            levels.forEach(level => {
-                const imageUrl = `https://game.gtimg.cn/images/gp/webimg_xiangmu/HZ_upgrade/${customText}_RedClothing_RankIcon_${level}.png`;
-                const resultItem = document.createElement('div');
-                resultItem.className ='result-item';
-                const title = document.createElement('p');
-                title.textContent = `等级 ${level} 的图标`;
-                resultItem.appendChild(title);
-                const img = document.createElement('img');
-                img.src = imageUrl;
-                img.alt = `等级 ${level} 的图标`;
-                resultItem.appendChild(img);
-                redClothingResults.appendChild(resultItem);
             });
         });
     </script>
