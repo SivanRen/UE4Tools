@@ -5,87 +5,230 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UE4Tools</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        /* iOS 18 基础样式重置与全局配置 */
+        * {
             margin: 0;
-            padding: 20px;
-            background-color: #000;
-            color: #fff;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
+
+        body {
+            background: linear-gradient(180deg, #f5f5f7 0%, #e8e8ed 100%);
+            color: #1d1d1f;
+            min-height: 100vh;
+            padding: env(safe-area-inset-top, 20px) env(safe-area-inset-right, 20px) env(safe-area-inset-bottom, 20px) env(safe-area-inset-left, 20px);
+            line-height: 1.5;
+        }
+
+        /* iOS 18 标题样式 */
         h1 {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            font-size: 24px;
+            font-weight: 600;
+            color: #1d1d1f;
+            letter-spacing: -0.5px;
         }
+
+        /* iOS 18 按钮样式 - 主按钮 */
         button {
             width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            background-color: #4CAF50;
-            color: white;
+            padding: 14px 20px;
+            font-size: 17px;
+            font-weight: 500;
             border: none;
-            border-radius: 5px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: all 0.2s ease;
+            background-color: #007aff;
+            color: white;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.15);
         }
+
         button:hover {
-            background-color: #45a049;
+            background-color: #0066cc;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
         }
+
+        button:active {
+            background-color: #0059b3;
+            transform: scale(0.98);
+        }
+
+        /* 功能选择器 - 毛玻璃效果 */
         #functionSelector {
             display: none;
             max-width: 600px;
-            margin: 0 auto;
+            margin: 0 auto 20px;
             padding: 20px;
-            background-color: #1a1a1a;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
+
+        /* 功能区块样式 */
         section {
             display: none;
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #1a1a1a;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
+
+        /* 输入组样式 */
        .input-group {
-            margin-bottom: 15px;
+            margin-bottom: 24px;
         }
+
+        /* 文本域样式 - iOS 风格 */
         textarea {
             width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #333;
-            color: #fff;
+            padding: 16px;
+            font-size: 17px;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #1d1d1f;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.2s ease;
         }
+
+        textarea:focus {
+            outline: none;
+            border-color: #007aff;
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+        }
+
+        textarea::placeholder {
+            color: #86868b;
+        }
+
+        /* 文件输入样式美化 */
+        input[type="file"] {
+            width: 100%;
+            padding: 14px;
+            font-size: 17px;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #1d1d1f;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        /* 提示信息样式 */
        .error-message {
-            color: red;
+            color: #ff3b30;
             font-size: 14px;
-            margin-top: 10px;
+            margin: 12px 0;
+            text-align: center;
         }
+
        .info-message {
-            color: orange;
+            color: #ff9500;
             font-size: 14px;
-            margin-top: 10px;
+            margin: 12px 0;
+            text-align: center;
         }
+
+        /* 结果区域样式 */
        .results {
-            margin-top: 20px;
+            margin-top: 24px;
         }
+
        .result-item {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
+
+       .result-item p {
+            margin-bottom: 12px;
+            font-weight: 500;
+            color: #1d1d1f;
+        }
+
         img {
             max-width: 100%;
-            border-radius: 5px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
+
+        /* 差异对比预览区域 */
         #fileDiffSection.preview {
-            margin-top: 20px;
-            border: 1px solid #555;
-            padding: 10px;
-            min-height: 100px;
+            margin-top: 24px;
+            border: 1px solid #e0e0e0;
+            padding: 16px;
+            min-height: 140px;
             overflow-y: scroll;
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #1d1d1f;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        /* 滚动条美化 - iOS 风格 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        /* 辅助按钮样式（清空、复制等） */
+        #clearInputButton {
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+        }
+
+        #clearInputButton:hover {
+            background-color: #e8e8ed;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 480px) {
+            body {
+                padding: 16px;
+            }
+
+            section, #functionSelector {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            button {
+                padding: 12px 16px;
+                font-size: 16px;
+            }
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/diff-match-patch/1.0.0/diff_match_patch.js"></script>
@@ -324,142 +467,90 @@
         });
 
         // 文件差异对比功能修复
- 
-const compareFilesButton = document.getElementById('compareFilesButton');
+        const compareFilesButton = document.getElementById('compareFilesButton');
+        const fileAInput = document.getElementById('fileAInput');
+        const fileBInput = document.getElementById('fileBInput');
+        const diffPreview = document.getElementById('diffPreview');
+        const downloadDiffButton = document.getElementById('downloadDiffButton');
+        const copyDiffButton = document.getElementById('copyDiffButton');
+        let diffContent = '';
 
-const fileAInput = document.getElementById('fileAInput');
-
-const fileBInput = document.getElementById('fileBInput');
-
-const diffPreview = document.getElementById('diffPreview');
-
-const downloadDiffButton = document.getElementById('downloadDiffButton');
-
-const copyDiffButton = document.getElementById('copyDiffButton');
-
-let diffContent = '';
-
-compareFilesButton.addEventListener('click', () => {
-  
-if (!fileAInput.files.length ||!fileBInput.files.length) {
-
-
-alert("请选择两个TXT文件");
-
-return;
-  
-}
-  
-const fileA = fileAInput.files[0];
-  
-const fileB = fileBInput.files[0];
-  
-const readerA = new FileReader();
-  
-const readerB = new FileReader();
-  
-readerA.onload = function (eventA) {
-
-const linesA = eventA.target.result.split(/\r?\n/);
-
-readerB.onload = function (eventB) {
-  
-const linesB = eventB.target.result.split(/\r?\n/);
-
-const diffLines = [];
-  
-const fileADiffLines = [];
-
-linesA.forEach(line => {
-
-if (!linesB.includes(line)) {
-
-fileADiffLines.push(line);
-
-}
-  
-});
-
-
-if (fileADiffLines.length > 0) {
-
-diffLines.push('文件A独有:');
-
-diffLines.push(...fileADiffLines);
-
-}
-
-const fileBDiffLines = [];
-
-linesB.forEach(line => {
-
-if (!linesA.includes(line)) {
-
-fileBDiffLines.push(line);
-
-}
-
-});
-  
-if (fileBDiffLines.length > 0) {
-
-if (diffLines.length > 0) {
-
-diffLines.push('');
-
-}
-
-diffLines.push('文件B独有:');
-
-diffLines.push(...fileBDiffLines);
-}
-diffContent = diffLines.join('\n');
-diffPreview.textContent = diffContent;
-downloadDiffButton.style.display = 'block';
-
-copyDiffButton.style.display = 'block';
-};
-readerB.readAsText(fileB);
-};
-readerA.readAsText(fileA);
-});
-downloadDiffButton.addEventListener('click', () => {
-if (!diffContent) {
-alert("没有可下载的差异内容");
-return;
-}
-const date = new Date();
-const month = String(date.getMonth() + 1).padStart(2, '0');
-const day = String(date.getDate()).padStart(2, '0');
-const dateStr = month + day;
-const fileName = `${dateStr}差异内容补全.txt`;
-const blob = new Blob([diffContent], { type: "text/plain" });
-const link = document.createElement('a');
-link.href = URL.createObjectURL(blob);
-link.download = fileName;
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
-});
-copyDiffButton.addEventListener('click', () => {
-if (!diffContent) {
-alert("没有可复制的差异内容");
-return;
-}
-  
-navigator.clipboard.writeText(diffContent).then(() => {
-
-
-alert("差异内容已复制到剪贴板！");
-  
-}).catch(err => {
-
-
-console.error("复制失败:", err);
-alert("复制失败，请手动选择文本复制");
-  
-});
-});
+        compareFilesButton.addEventListener('click', () => {
+            if (!fileAInput.files.length ||!fileBInput.files.length) {
+                alert("请选择两个TXT文件");
+                return;
+            }
+            const fileA = fileAInput.files[0];
+            const fileB = fileBInput.files[0];
+            const readerA = new FileReader();
+            const readerB = new FileReader();
+            readerA.onload = function (eventA) {
+                const linesA = eventA.target.result.split(/\r?\n/);
+                readerB.onload = function (eventB) {
+                    const linesB = eventB.target.result.split(/\r?\n/);
+                    const diffLines = [];
+                    const fileADiffLines = [];
+                    linesA.forEach(line => {
+                        if (!linesB.includes(line)) {
+                            fileADiffLines.push(line);
+                        }
+                    });
+                    if (fileADiffLines.length > 0) {
+                        diffLines.push('文件A独有:');
+                        diffLines.push(...fileADiffLines);
+                    }
+                    const fileBDiffLines = [];
+                    linesB.forEach(line => {
+                        if (!linesA.includes(line)) {
+                            fileBDiffLines.push(line);
+                        }
+                    });
+                    if (fileBDiffLines.length > 0) {
+                        if (diffLines.length > 0) {
+                            diffLines.push('');
+                        }
+                        diffLines.push('文件B独有:');
+                        diffLines.push(...fileBDiffLines);
+                    }
+                    diffContent = diffLines.join('\n');
+                    diffPreview.textContent = diffContent;
+                    downloadDiffButton.style.display = 'block';
+                    copyDiffButton.style.display = 'block';
+                };
+                readerB.readAsText(fileB);
+            };
+            readerA.readAsText(fileA);
+        });
+        downloadDiffButton.addEventListener('click', () => {
+            if (!diffContent) {
+                alert("没有可下载的差异内容");
+                return;
+            }
+            const date = new Date();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const dateStr = month + day;
+            const fileName = `${dateStr}差异内容补全.txt`;
+            const blob = new Blob([diffContent], { type: "text/plain" });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+        copyDiffButton.addEventListener('click', () => {
+            if (!diffContent) {
+                alert("没有可复制的差异内容");
+                return;
+            }
+            navigator.clipboard.writeText(diffContent).then(() => {
+                alert("差异内容已复制到剪贴板！");
+            }).catch(err => {
+                console.error("复制失败:", err);
+                alert("复制失败，请手动选择文本复制");
+            });
+        });
 
         // RedClothingIcon功能
         const generateRedClothingIconsButton = document.getElementById('generateRedClothingIconsButton');
