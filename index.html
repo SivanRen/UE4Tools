@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UE4Tools</title>
     <style>
-        /* 基础样式重置与全局配置 */
+        /*基础样式重置与全局配置 */
         * {
             margin: 0;
             padding: 0;
@@ -31,7 +31,7 @@
             letter-spacing: -0.5px;
         }
 
-        /* 按钮样式 - 主按钮 */
+        /*  主按钮 */
         button {
             width: 100%;
             padding: 14px 20px;
@@ -90,7 +90,7 @@
             margin-bottom: 24px;
         }
 
-        /* 文本域样式 - iOS 风格 */
+        /* 文本域样式 */
         textarea {
             width: 100%;
             padding: 16px;
@@ -181,7 +181,7 @@
             font-size: 14px;
         }
 
-        /* 滚动条美化 */
+        /* 滚动条美化  */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -229,6 +229,59 @@
                 padding: 12px 16px;
                 font-size: 16px;
             }
+
+            /* 移动端调整回到顶部/底部按钮大小 */
+           .scroll-control-btn {
+                width: 50px!important;
+                height: 50px!important;
+                font-size: 18px!important;
+                bottom: 20px!important;
+                right: 20px!important;
+            }
+        }
+
+        /* 滚动控制按钮基础样式  */
+       .scroll-control-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: rgba(0, 122, 255, 0.9);
+            color: white;
+            border: none;
+            font-size: 22px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+            transition: all 0.3s ease;
+            z-index: 9999; /* 确保在最上层，但不遮挡内容 */
+            opacity: 0; /* 初始隐藏 */
+            pointer-events: none; /* 初始不可点击 */
+        }
+
+       .scroll-control-btn:hover {
+            background-color: rgba(0, 98, 204, 0.9);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+        }
+
+       .scroll-control-btn:active {
+            transform: translateY(-1px);
+        }
+
+       .scroll-control-btn.show {
+            opacity: 1; /* 显示 */
+            pointer-events: auto; /* 可点击 */
+        }
+
+        /* 区分置顶和置底按钮的位置（置底按钮默认和置顶按钮同位置，通过显隐切换） */
+        #backToBottomBtn {
+            /* 与置顶按钮同位置，通过显隐切换 */
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/diff-match-patch/1.0.0/diff_match_patch.js"></script>
@@ -294,6 +347,11 @@
         <div class="results" id="subway-results"></div>
         <button id="downloadSubwayIconButton" style="display: none;" onclick="downloadSubwayIcons()">一键下载所有图标</button>
     </section>
+
+    <!-- 滚动控制按钮：置顶和置底 -->
+    <button class="scroll-control-btn" id="backToTopBtn">↑</button>
+    <button class="scroll-control-btn" id="backToBottomBtn">↓</button>
+
     <script>
         // 功能选择
         const selectFunctionButton = document.getElementById('selectFunctionButton');
@@ -308,6 +366,13 @@
         const subwayIconOption = document.getElementById('subwayIconOption');
         const subwayIconSection = document.getElementById('subway-icon');
 
+        // 滚动控制按钮
+        const backToTopBtn = document.getElementById('backToTopBtn');
+        const backToBottomBtn = document.getElementById('backToBottomBtn');
+        
+        // 标记是否有内容生成（控制置底按钮显示）
+        let hasContentGenerated = false;
+
         selectFunctionButton.addEventListener('click', () => {
             functionSelector.style.display = 'block';
         });
@@ -318,6 +383,9 @@
             fileDiffSection.style.display = 'none';
             subwayIconSection.style.display = 'none';
             title.style.display = 'none';
+            // 重置内容标记
+            hasContentGenerated = false;
+            hideBothScrollButtons();
         });
         dumpProcessingOption.addEventListener('click', () => {
             functionSelector.style.display = 'none';
@@ -326,6 +394,9 @@
             fileDiffSection.style.display = 'none';
             subwayIconSection.style.display = 'none';
             title.style.display = 'none';
+            // 重置内容标记
+            hasContentGenerated = false;
+            hideBothScrollButtons();
         });
         fileDiffOption.addEventListener('click', () => {
             functionSelector.style.display = 'none';
@@ -334,6 +405,9 @@
             dumpProcessingSection.style.display = 'none';
             subwayIconSection.style.display = 'none';
             title.style.display = 'none';
+            // 重置内容标记
+            hasContentGenerated = false;
+            hideBothScrollButtons();
         });
         subwayIconOption.addEventListener('click', () => {
             functionSelector.style.display = 'none';
@@ -342,6 +416,9 @@
             dumpProcessingSection.style.display = 'none';
             fileDiffSection.style.display = 'none';
             title.style.display = 'none';
+            // 重置内容标记
+            hasContentGenerated = false;
+            hideBothScrollButtons();
         });
 
         // 批量icon 检索
@@ -367,11 +444,16 @@
             }
             const lines = inputText.split(/\r?\n/).filter(line => line.trim()!== '');
             const validEntries = [];
+            
             lines.forEach(line => {
-                const nameMatch = line.match(/(\d+)\s*--\s*(\d+)\s*--\s*([^--]+)/);
+                // 修复核心：使用更精准的正则表达式，只匹配 "--" 分隔符，保留名称中的 "-"
+                // 正则解释：捕获第一个数字组，跳过第二个数字组，捕获剩余所有内容（包括-）作为名称
+                const nameMatch = line.match(/^(\d+)\s*--\s*\d+\s*--\s*(.+)$/);
                 const numberMatch = line.match(/\d+/);
+                
                 if (nameMatch) {
-                    const name = nameMatch[3].trim();
+                    // 保留完整的名称（包括-符号）
+                    const name = nameMatch[2].trim();
                     const number = nameMatch[1].trim();
                     validEntries.push({ name, number });
                 } else if (numberMatch) {
@@ -379,27 +461,36 @@
                     validEntries.push({ name: "Null", number });
                 }
             });
+            
             if (validEntries.length === 0) {
                 errorMessage.textContent = '输入内容无有效条目！';
                 return;
             }
+            
             validEntries.forEach(entry => {
-                // 原有批量icon的链接地址
+                // 批量icon的链接地址
                 const imageUrl = `https://imgcdn.gp.qq.com/images/itemicon/v15/${entry.number}.png`;
                 const resultItem = document.createElement('div');
                 resultItem.className ='result-item';
                 const title = document.createElement('p');
+                // 显示完整名称
                 title.textContent = `${entry.name} 输出值: ${entry.number}`;
                 resultItem.appendChild(title);
                 const img = document.createElement('img');
                 img.src = imageUrl;
-                img.alt = `生成的图片 ${entry.number}`;
+                img.alt = `${entry.name} ${entry.number}`;
                 resultItem.appendChild(img);
                 results.appendChild(resultItem);
             });
+            
             infoMessage.textContent = `共处理了 ${validEntries.length} 个输入值。`;
             downloadIconButton.style.display = 'block';
+            
+            // 标记有内容生成，显示置底按钮
+            hasContentGenerated = true;
+            showBackToBottomButton();
         });
+        
         function downloadIcons() {
             const imgs = document.querySelectorAll('#results img');
             imgs.forEach(img => {
@@ -433,11 +524,14 @@
             }
             const lines = inputText.split(/\r?\n/).filter(line => line.trim()!== '');
             const validEntries = [];
+            
             lines.forEach(line => {
-                const nameMatch = line.match(/(\d+)\s*--\s*(\d+)\s*--\s*([^--]+)/);
+                // 称解析逻辑
+                const nameMatch = line.match(/^(\d+)\s*--\s*\d+\s*--\s*(.+)$/);
                 const numberMatch = line.match(/\d+/);
+                
                 if (nameMatch) {
-                    const name = nameMatch[3].trim();
+                    const name = nameMatch[2].trim();
                     const number = nameMatch[1].trim();
                     validEntries.push({ name, number });
                 } else if (numberMatch) {
@@ -445,27 +539,36 @@
                     validEntries.push({ name: "Null", number });
                 }
             });
+            
             if (validEntries.length === 0) {
                 subwayErrorMessage.textContent = '输入内容无有效条目！';
                 return;
             }
+            
             validEntries.forEach(entry => {
                 // 地铁道具icon的专属链接地址
                 const imageUrl = `https://imgcdn.gp.qq.com/images/Subway/s/${entry.number}.png`;
                 const resultItem = document.createElement('div');
                 resultItem.className ='result-item';
                 const title = document.createElement('p');
+                // 显示完整名称
                 title.textContent = `${entry.name} 输出值: ${entry.number}`;
                 resultItem.appendChild(title);
                 const img = document.createElement('img');
                 img.src = imageUrl;
-                img.alt = `地铁道具图片 ${entry.number}`;
+                img.alt = `${entry.name} ${entry.number}`;
                 resultItem.appendChild(img);
                 subwayResults.appendChild(resultItem);
             });
+            
             subwayInfoMessage.textContent = `共处理了 ${validEntries.length} 个输入值。`;
             downloadSubwayIconButton.style.display = 'block';
+            
+            // 标记有内容生成，显示置底按钮
+            hasContentGenerated = true;
+            showBackToBottomButton();
         });
+        
         function downloadSubwayIcons() {
             const imgs = document.querySelectorAll('#subway-results img');
             imgs.forEach(img => {
@@ -506,6 +609,10 @@
                 processedText.textContent = processedContent;
                 downloadDumpButton.style.display = "block";
                 copyDumpButton.style.display = "block";
+                
+                // 标记有内容生成，显示置底按钮
+                hasContentGenerated = true;
+                showBackToBottomButton();
             };
             reader.readAsText(file);
         });
@@ -589,6 +696,10 @@
                     diffPreview.textContent = diffContent;
                     downloadDiffButton.style.display = 'block';
                     copyDiffButton.style.display = 'block';
+                    
+                    // 标记有内容生成，显示置底按钮
+                    hasContentGenerated = true;
+                    showBackToBottomButton();
                 };
                 readerB.readAsText(fileB);
             };
@@ -623,6 +734,60 @@
                 console.error("复制失败:", err);
                 alert("复制失败，请手动选择文本复制");
             });
+        });
+
+        // 滚动控制按钮核心逻辑
+        // 隐藏两个按钮
+        function hideBothScrollButtons() {
+            backToTopBtn.classList.remove('show');
+            backToBottomBtn.classList.remove('show');
+        }
+        
+        // 显示置底按钮，隐藏置顶按钮
+        function showBackToBottomButton() {
+            backToBottomBtn.classList.add('show');
+            backToTopBtn.classList.remove('show');
+        }
+        
+        // 显示置顶按钮，隐藏置底按钮
+        function showBackToTopButton() {
+            backToTopBtn.classList.add('show');
+            backToBottomBtn.classList.remove('show');
+        }
+        
+        // 监听滚动事件，控制按钮显示/隐藏
+        window.addEventListener('scroll', () => {
+            if (!hasContentGenerated) return; // 没有内容时不显示任何滚动按钮
+            
+            // 滚动到底部时显示置顶按钮
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 10) {
+                showBackToTopButton();
+            } 
+            // 滚动到顶部时显示置底按钮
+            else if (window.scrollY <= 10) {
+                showBackToBottomButton();
+            }
+            // 中间位置：保持当前显示的按钮（置底/置顶）
+        });
+        
+        // 点击置顶按钮回到顶部（平滑滚动）
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth' // 平滑滚动效果
+            });
+            // 回到顶部后显示置底按钮
+            setTimeout(showBackToBottomButton, 500);
+        });
+        
+        // 点击置底按钮到底部（平滑滚动）
+        backToBottomBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+            // 到底部后显示置顶按钮
+            setTimeout(showBackToTopButton, 500);
         });
     </script>
 </body>
