@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UE4Tools</title>
     <style>
-        /*基础样式重置与全局配置 */
+        /* 基础样式重置与全局配置 */
         * {
             margin: 0;
             padding: 0;
@@ -31,7 +31,7 @@
             letter-spacing: -0.5px;
         }
 
-        /*  主按钮 */
+        /*  - 主按钮 */
         button {
             width: 100%;
             padding: 14px 20px;
@@ -211,6 +211,13 @@
             background-color: #e8e8ed;
         }
 
+        /* 返回选择按钮样式 */
+        #backToSelectBtn {
+            max-width: 600px;
+            margin: 0 auto 20px;
+            display: none;
+        }
+
         /* 响应式适配 */
         @media (max-width: 480px) {
             body {
@@ -230,7 +237,7 @@
                 font-size: 16px;
             }
 
-            /* 移动端调整回到顶部/底部按钮大小 */
+            /* 移动端调整滚动控制按钮大小 */
            .scroll-control-btn {
                 width: 50px!important;
                 height: 50px!important;
@@ -240,7 +247,7 @@
             }
         }
 
-        /* 滚动控制按钮基础样式  */
+        /* 滚动控制按钮基础样式 - iOS 18风格 */
        .scroll-control-btn {
             position: fixed;
             bottom: 30px;
@@ -278,23 +285,28 @@
             opacity: 1; /* 显示 */
             pointer-events: auto; /* 可点击 */
         }
-
-        /* 区分置顶和置底按钮的位置（置底按钮默认和置顶按钮同位置，通过显隐切换） */
-        #backToBottomBtn {
-            /* 与置顶按钮同位置，通过显隐切换 */
-        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/diff-match-patch/1.0.0/diff_match_patch.js"></script>
 </head>
 <body>
-    <h1 id="title">选择功能</h1>
-    <button id="selectFunctionButton">选择功能</button>
+    <!-- 初始页面：标题 + 选择功能按钮 -->
+    <div id="initialView">
+        <h1 id="title">选择功能</h1>
+        <button id="selectFunctionButton">选择功能</button>
+    </div>
+
+    <!-- 功能选择面板 -->
     <div id="functionSelector">
         <button id="iconSearchOption">批量icon检索</button>
         <button id="dumpProcessingOption">Dump内容修正处理</button>
         <button id="fileDiffOption">文件差异对比</button>
         <button id="subwayIconOption">地铁道具icon获取</button>
     </div>
+
+    <!-- 返回选择按钮（在功能页面显示） -->
+    <button id="backToSelectBtn">返回功能选择</button>
+
+    <!-- 各功能页面 -->
     <section id="icon-search">
         <h1>批量icon检索</h1>
         <div class="input-group">
@@ -353,19 +365,32 @@
     <button class="scroll-control-btn" id="backToBottomBtn">↓</button>
 
     <script>
-        // 功能选择
+        // DOM元素获取
+        const initialView = document.getElementById('initialView');
         const selectFunctionButton = document.getElementById('selectFunctionButton');
         const functionSelector = document.getElementById('functionSelector');
+        const backToSelectBtn = document.getElementById('backToSelectBtn');
+        
+        // 功能选项
         const iconSearchOption = document.getElementById('iconSearchOption');
         const dumpProcessingOption = document.getElementById('dumpProcessingOption');
         const fileDiffOption = document.getElementById('fileDiffOption');
+        const subwayIconOption = document.getElementById('subwayIconOption');
+        
+        // 功能页面
         const iconSearchSection = document.getElementById('icon-search');
         const dumpProcessingSection = document.getElementById('dump-processing');
         const fileDiffSection = document.getElementById('fileDiffSection');
-        const title = document.getElementById('title');
-        const subwayIconOption = document.getElementById('subwayIconOption');
         const subwayIconSection = document.getElementById('subway-icon');
-
+        
+        // 所有功能页面集合
+        const allFunctionSections = [
+            iconSearchSection,
+            dumpProcessingSection,
+            fileDiffSection,
+            subwayIconSection
+        ];
+        
         // 滚动控制按钮
         const backToTopBtn = document.getElementById('backToTopBtn');
         const backToBottomBtn = document.getElementById('backToBottomBtn');
@@ -373,54 +398,124 @@
         // 标记是否有内容生成（控制置底按钮显示）
         let hasContentGenerated = false;
 
+        // ========== 核心交互逻辑 ==========
+        // 1. 初始页面：点击选择功能 → 隐藏初始页面，显示功能选择面板
         selectFunctionButton.addEventListener('click', () => {
+            initialView.style.display = 'none';
             functionSelector.style.display = 'block';
-        });
-        iconSearchOption.addEventListener('click', () => {
-            functionSelector.style.display = 'none';
-            iconSearchSection.style.display = 'block';
-            dumpProcessingSection.style.display = 'none';
-            fileDiffSection.style.display = 'none';
-            subwayIconSection.style.display = 'none';
-            title.style.display = 'none';
-            // 重置内容标记
-            hasContentGenerated = false;
+            hideAllFunctionSections();
+            backToSelectBtn.style.display = 'none';
             hideBothScrollButtons();
-        });
-        dumpProcessingOption.addEventListener('click', () => {
-            functionSelector.style.display = 'none';
-            dumpProcessingSection.style.display = 'block';
-            iconSearchSection.style.display = 'none';
-            fileDiffSection.style.display = 'none';
-            subwayIconSection.style.display = 'none';
-            title.style.display = 'none';
-            // 重置内容标记
             hasContentGenerated = false;
-            hideBothScrollButtons();
-        });
-        fileDiffOption.addEventListener('click', () => {
-            functionSelector.style.display = 'none';
-            fileDiffSection.style.display = 'block';
-            iconSearchSection.style.display = 'none';
-            dumpProcessingSection.style.display = 'none';
-            subwayIconSection.style.display = 'none';
-            title.style.display = 'none';
-            // 重置内容标记
-            hasContentGenerated = false;
-            hideBothScrollButtons();
-        });
-        subwayIconOption.addEventListener('click', () => {
-            functionSelector.style.display = 'none';
-            subwayIconSection.style.display = 'block';
-            iconSearchSection.style.display = 'none';
-            dumpProcessingSection.style.display = 'none';
-            fileDiffSection.style.display = 'none';
-            title.style.display = 'none';
-            // 重置内容标记
-            hasContentGenerated = false;
-            hideBothScrollButtons();
         });
 
+        // 2. 返回功能选择：隐藏当前功能页面，显示功能选择面板
+        backToSelectBtn.addEventListener('click', () => {
+            hideAllFunctionSections();
+            functionSelector.style.display = 'block';
+            backToSelectBtn.style.display = 'none';
+            hideBothScrollButtons();
+            hasContentGenerated = false;
+        });
+
+        // 3. 选择具体功能 → 隐藏选择面板，显示对应功能页面，显示返回按钮
+        iconSearchOption.addEventListener('click', () => {
+            switchToFunctionPage(iconSearchSection);
+        });
+        
+        dumpProcessingOption.addEventListener('click', () => {
+            switchToFunctionPage(dumpProcessingSection);
+        });
+        
+        fileDiffOption.addEventListener('click', () => {
+            switchToFunctionPage(fileDiffSection);
+        });
+        
+        subwayIconOption.addEventListener('click', () => {
+            switchToFunctionPage(subwayIconSection);
+        });
+
+        // ========== 辅助函数 ==========
+        /**
+         * 隐藏所有功能页面
+         */
+        function hideAllFunctionSections() {
+            allFunctionSections.forEach(section => {
+                section.style.display = 'none';
+            });
+        }
+
+        /**
+         * 切换到指定功能页面
+         * @param {HTMLElement} targetSection - 目标功能页面
+         */
+        function switchToFunctionPage(targetSection) {
+            // 隐藏功能选择面板
+            functionSelector.style.display = 'none';
+            // 隐藏所有功能页面
+            hideAllFunctionSections();
+            // 显示目标功能页面
+            targetSection.style.display = 'block';
+            // 显示返回按钮
+            backToSelectBtn.style.display = 'block';
+            // 重置滚动按钮状态
+            hideBothScrollButtons();
+            hasContentGenerated = false;
+        }
+
+        // ========== 滚动控制逻辑 ==========
+        // 隐藏两个按钮
+        function hideBothScrollButtons() {
+            backToTopBtn.classList.remove('show');
+            backToBottomBtn.classList.remove('show');
+        }
+        
+        // 显示置底按钮，隐藏置顶按钮
+        function showBackToBottomButton() {
+            backToBottomBtn.classList.add('show');
+            backToTopBtn.classList.remove('show');
+        }
+        
+        // 显示置顶按钮，隐藏置底按钮
+        function showBackToTopButton() {
+            backToTopBtn.classList.add('show');
+            backToBottomBtn.classList.remove('show');
+        }
+        
+        // 监听滚动事件，控制按钮显示/隐藏
+        window.addEventListener('scroll', () => {
+            if (!hasContentGenerated) return; // 没有内容时不显示任何滚动按钮
+            
+            // 滚动到底部时显示置顶按钮
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 10) {
+                showBackToTopButton();
+            } 
+            // 滚动到顶部时显示置底按钮
+            else if (window.scrollY <= 10) {
+                showBackToBottomButton();
+            }
+            // 中间位置：保持当前显示的按钮（置底/置顶）
+        });
+        
+        // 点击置顶按钮回到顶部（平滑滚动）
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            setTimeout(showBackToBottomButton, 500);
+        });
+        
+        // 点击置底按钮到底部（平滑滚动）
+        backToBottomBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+            setTimeout(showBackToTopButton, 500);
+        });
+
+        // ========== 原有功能逻辑（完整保留，仅添加内容生成标记） ==========
         // 批量icon 检索
         const processButton = document.getElementById('process-button');
         const contentInput = document.getElementById('content-input');
@@ -446,13 +541,10 @@
             const validEntries = [];
             
             lines.forEach(line => {
-                // 修复核心：使用更精准的正则表达式，只匹配 "--" 分隔符，保留名称中的 "-"
-                // 正则解释：捕获第一个数字组，跳过第二个数字组，捕获剩余所有内容（包括-）作为名称
                 const nameMatch = line.match(/^(\d+)\s*--\s*\d+\s*--\s*(.+)$/);
                 const numberMatch = line.match(/\d+/);
                 
                 if (nameMatch) {
-                    // 保留完整的名称（包括-符号）
                     const name = nameMatch[2].trim();
                     const number = nameMatch[1].trim();
                     validEntries.push({ name, number });
@@ -468,12 +560,10 @@
             }
             
             validEntries.forEach(entry => {
-                // 批量icon的链接地址
                 const imageUrl = `https://imgcdn.gp.qq.com/images/itemicon/v15/${entry.number}.png`;
                 const resultItem = document.createElement('div');
                 resultItem.className ='result-item';
                 const title = document.createElement('p');
-                // 显示完整名称
                 title.textContent = `${entry.name} 输出值: ${entry.number}`;
                 resultItem.appendChild(title);
                 const img = document.createElement('img');
@@ -486,7 +576,7 @@
             infoMessage.textContent = `共处理了 ${validEntries.length} 个输入值。`;
             downloadIconButton.style.display = 'block';
             
-            // 标记有内容生成，显示置底按钮
+            // 标记有内容生成
             hasContentGenerated = true;
             showBackToBottomButton();
         });
@@ -526,7 +616,6 @@
             const validEntries = [];
             
             lines.forEach(line => {
-                // 称解析逻辑
                 const nameMatch = line.match(/^(\d+)\s*--\s*\d+\s*--\s*(.+)$/);
                 const numberMatch = line.match(/\d+/);
                 
@@ -546,12 +635,10 @@
             }
             
             validEntries.forEach(entry => {
-                // 地铁道具icon的专属链接地址
                 const imageUrl = `https://imgcdn.gp.qq.com/images/Subway/s/${entry.number}.png`;
                 const resultItem = document.createElement('div');
                 resultItem.className ='result-item';
                 const title = document.createElement('p');
-                // 显示完整名称
                 title.textContent = `${entry.name} 输出值: ${entry.number}`;
                 resultItem.appendChild(title);
                 const img = document.createElement('img');
@@ -564,7 +651,7 @@
             subwayInfoMessage.textContent = `共处理了 ${validEntries.length} 个输入值。`;
             downloadSubwayIconButton.style.display = 'block';
             
-            // 标记有内容生成，显示置底按钮
+            // 标记有内容生成
             hasContentGenerated = true;
             showBackToBottomButton();
         });
@@ -610,7 +697,7 @@
                 downloadDumpButton.style.display = "block";
                 copyDumpButton.style.display = "block";
                 
-                // 标记有内容生成，显示置底按钮
+                // 标记有内容生成
                 hasContentGenerated = true;
                 showBackToBottomButton();
             };
@@ -697,7 +784,7 @@
                     downloadDiffButton.style.display = 'block';
                     copyDiffButton.style.display = 'block';
                     
-                    // 标记有内容生成，显示置底按钮
+                    // 标记有内容生成
                     hasContentGenerated = true;
                     showBackToBottomButton();
                 };
@@ -734,60 +821,6 @@
                 console.error("复制失败:", err);
                 alert("复制失败，请手动选择文本复制");
             });
-        });
-
-        // 滚动控制按钮核心逻辑
-        // 隐藏两个按钮
-        function hideBothScrollButtons() {
-            backToTopBtn.classList.remove('show');
-            backToBottomBtn.classList.remove('show');
-        }
-        
-        // 显示置底按钮，隐藏置顶按钮
-        function showBackToBottomButton() {
-            backToBottomBtn.classList.add('show');
-            backToTopBtn.classList.remove('show');
-        }
-        
-        // 显示置顶按钮，隐藏置底按钮
-        function showBackToTopButton() {
-            backToTopBtn.classList.add('show');
-            backToBottomBtn.classList.remove('show');
-        }
-        
-        // 监听滚动事件，控制按钮显示/隐藏
-        window.addEventListener('scroll', () => {
-            if (!hasContentGenerated) return; // 没有内容时不显示任何滚动按钮
-            
-            // 滚动到底部时显示置顶按钮
-            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 10) {
-                showBackToTopButton();
-            } 
-            // 滚动到顶部时显示置底按钮
-            else if (window.scrollY <= 10) {
-                showBackToBottomButton();
-            }
-            // 中间位置：保持当前显示的按钮（置底/置顶）
-        });
-        
-        // 点击置顶按钮回到顶部（平滑滚动）
-        backToTopBtn.addEventListener('click', () => {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth' // 平滑滚动效果
-            });
-            // 回到顶部后显示置底按钮
-            setTimeout(showBackToBottomButton, 500);
-        });
-        
-        // 点击置底按钮到底部（平滑滚动）
-        backToBottomBtn.addEventListener('click', () => {
-            window.scrollTo({
-                top: document.body.scrollHeight,
-                behavior: 'smooth'
-            });
-            // 到底部后显示置顶按钮
-            setTimeout(showBackToTopButton, 500);
         });
     </script>
 </body>
