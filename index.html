@@ -202,12 +202,12 @@
         }
 
         /* 辅助按钮样式（清空、复制等） */
-        #clearInputButton, #clearSubwayInputButton {
+        #clearInputButton, #clearSubwayInputButton, #clearDaomuInputButton {
             background-color: #f5f5f7;
             color: #1d1d1f;
         }
 
-        #clearInputButton:hover, #clearSubwayInputButton:hover {
+        #clearInputButton:hover, #clearSubwayInputButton:hover, #clearDaomuInputButton:hover {
             background-color: #e8e8ed;
         }
 
@@ -301,6 +301,8 @@
         <button id="dumpProcessingOption">Dump内容修正处理</button>
         <button id="fileDiffOption">文件差异对比</button>
         <button id="subwayIconOption">地铁道具icon获取</button>
+        <!-- 新增古墓功能按钮 -->
+        <button id="daomuIconOption">古墓icon批量获取</button>
     </div>
 
     <!-- 返回选择按钮（在功能页面显示） -->
@@ -359,6 +361,19 @@
         <div class="results" id="subway-results"></div>
         <button id="downloadSubwayIconButton" style="display: none;" onclick="downloadSubwayIcons()">一键下载所有图标</button>
     </section>
+    <!-- 新增古墓功能页面区块 -->
+    <section id="daomu-icon">
+        <h1>古墓icon批量获取</h1>
+        <div class="input-group">
+            <textarea id="daomu-content-input" placeholder="请输入多个数字组合，用逗号、换行或空格分隔"></textarea>
+            <button id="clearDaomuInputButton">清空输入框</button>
+        </div>
+        <button id="process-daomu-button">开始获取</button>
+        <div class="error-message" id="daomu-error-message"></div>
+        <div class="info-message" id="daomu-info-message"></div>
+        <div class="results" id="daomu-results"></div>
+        <button id="downloadDaomuIconButton" style="display: none;" onclick="downloadDaomuIcons()">一键下载所有图标</button>
+    </section>
 
     <!-- 滚动控制按钮：置顶和置底 -->
     <button class="scroll-control-btn" id="backToTopBtn">↑</button>
@@ -376,19 +391,22 @@
         const dumpProcessingOption = document.getElementById('dumpProcessingOption');
         const fileDiffOption = document.getElementById('fileDiffOption');
         const subwayIconOption = document.getElementById('subwayIconOption');
+        const daomuIconOption = document.getElementById('daomuIconOption');
         
         // 功能页面
         const iconSearchSection = document.getElementById('icon-search');
         const dumpProcessingSection = document.getElementById('dump-processing');
         const fileDiffSection = document.getElementById('fileDiffSection');
         const subwayIconSection = document.getElementById('subway-icon');
+        const daomuIconSection = document.getElementById('daomu-icon');
         
-        // 所有功能页面集合
+        // 所有功能页面集合（新增古墓区块）
         const allFunctionSections = [
             iconSearchSection,
             dumpProcessingSection,
             fileDiffSection,
-            subwayIconSection
+            subwayIconSection,
+            daomuIconSection
         ];
         
         // 滚动控制按钮
@@ -433,6 +451,10 @@
         
         subwayIconOption.addEventListener('click', () => {
             switchToFunctionPage(subwayIconSection);
+        });
+        // 新增古墓页面切换事件
+        daomuIconOption.addEventListener('click', () => {
+            switchToFunctionPage(daomuIconSection);
         });
 
         // ========== 辅助函数 ==========
@@ -658,6 +680,82 @@
         
         function downloadSubwayIcons() {
             const imgs = document.querySelectorAll('#subway-results img');
+            imgs.forEach(img => {
+                const a = document.createElement('a');
+                a.href = img.src;
+                a.download = img.src.split('/').pop();
+                a.click();
+            });
+        }
+
+        // ========== 新增古墓icon批量获取逻辑（完全复刻地铁逻辑，仅修改图片地址） ==========
+        const processDaomuButton = document.getElementById('process-daomu-button');
+        const daomuContentInput = document.getElementById('daomu-content-input');
+        const daomuErrorMessage = document.getElementById('daomu-error-message');
+        const daomuInfoMessage = document.getElementById('daomu-info-message');
+        const daomuResults = document.getElementById('daomu-results');
+        const downloadDaomuIconButton = document.getElementById('downloadDaomuIconButton');
+        const clearDaomuInputButton = document.getElementById('clearDaomuInputButton');
+
+        clearDaomuInputButton.addEventListener('click', () => {
+            daomuContentInput.value = '';
+        });
+        processDaomuButton.addEventListener('click', () => {
+            daomuErrorMessage.textContent = '';
+            daomuInfoMessage.textContent = '';
+            daomuResults.innerHTML = '';
+            const inputText = daomuContentInput.value.trim();
+            if (!inputText) {
+                daomuErrorMessage.textContent = '请输入内容！';
+                return;
+            }
+            const lines = inputText.split(/\r?\n/).filter(line => line.trim()!== '');
+            const validEntries = [];
+            
+            lines.forEach(line => {
+                const nameMatch = line.match(/^(\d+)\s*--\s*\d+\s*--\s*(.+)$/);
+                const numberMatch = line.match(/\d+/);
+                
+                if (nameMatch) {
+                    const name = nameMatch[2].trim();
+                    const number = nameMatch[1].trim();
+                    validEntries.push({ name, number });
+                } else if (numberMatch) {
+                    const number = numberMatch[0].trim();
+                    validEntries.push({ name: "Null", number });
+                }
+            });
+            
+            if (validEntries.length === 0) {
+                daomuErrorMessage.textContent = '输入内容无有效条目！';
+                return;
+            }
+            
+            validEntries.forEach(entry => {
+                // 古墓指定图片链接
+                const imageUrl = `https://imgcdn.gp.qq.com/images/daomu/s/${entry.number}.png`;
+                const resultItem = document.createElement('div');
+                resultItem.className ='result-item';
+                const title = document.createElement('p');
+                title.textContent = `${entry.name} 输出值: ${entry.number}`;
+                resultItem.appendChild(title);
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.alt = `${entry.name} ${entry.number}`;
+                resultItem.appendChild(img);
+                daomuResults.appendChild(resultItem);
+            });
+            
+            daomuInfoMessage.textContent = `共处理了 ${validEntries.length} 个输入值。`;
+            downloadDaomuIconButton.style.display = 'block';
+            
+            // 标记有内容生成
+            hasContentGenerated = true;
+            showBackToBottomButton();
+        });
+        
+        function downloadDaomuIcons() {
+            const imgs = document.querySelectorAll('#daomu-results img');
             imgs.forEach(img => {
                 const a = document.createElement('a');
                 a.href = img.src;
